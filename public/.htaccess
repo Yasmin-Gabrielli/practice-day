@@ -1,0 +1,9 @@
+RewriteEngine On
+
+# Entrega arquivos e diretórios existentes diretamente.
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Todas as demais requisições seguem para o front controller.
+RewriteRule ^ index.php [QSA,L]

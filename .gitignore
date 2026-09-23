@@ -1,0 +1,9 @@
+.env
+/storage/uploads/*
+!/storage/uploads/.gitkeep
+/storage/scanner/*
+!/storage/scanner/.gitkeep
+/storage/documentos/*
+!/storage/documentos/.gitkeep
+/storage/sessions/*
+!/storage/sessions/.gitkeep
