@@ -22,4 +22,16 @@ return [
     'auth' => [
         'session_lifetime_minutes' => 480,
     ],
+    'uploads' => [
+        'max_bytes' => 20 * 1024 * 1024,
+        'allowed' => [
+            'pdf' => ['application/pdf', 'application/x-pdf'],
+            'epub' => ['application/epub+zip', 'application/zip', 'application/octet-stream'],
+            'docx' => ['application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/zip', 'application/octet-stream'],
+            'txt' => ['text/plain'],
+            'png' => ['image/png'],
+            'jpg' => ['image/jpeg', 'image/pjpeg'],
+            'jpeg' => ['image/jpeg', 'image/pjpeg'],
+        ],
+    ],
 ];

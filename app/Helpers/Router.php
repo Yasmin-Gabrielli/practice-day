@@ -23,6 +23,7 @@ final class Router
 
     public function dispatch(string $method, string $uri): void
     {
+        $method = ($method === 'HEAD') ? 'GET' : $method;
         $path = parse_url($uri, PHP_URL_PATH) ?: '/';
         $scriptDirectory = rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? '')), '/');
 

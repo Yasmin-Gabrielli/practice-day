@@ -11,7 +11,7 @@ $isActive = static fn (string $page): string => $activePage === $page ? ' active
     <nav class="sidebar-nav" aria-label="Navegação principal">
         <a class="sidebar-link<?= $isActive('dashboard') ?>" href="<?= Url::to('/') ?>"><i class="bi bi-grid-1x2"></i><span>Dashboard</span></a>
         <a class="sidebar-link<?= $isActive('disciplinas') ?>" href="<?= Url::to('/disciplinas') ?>"><i class="bi bi-mortarboard"></i><span>Disciplinas</span></a>
-        <a class="sidebar-link<?= $isActive('arquivos') ?>" href="#" aria-disabled="true"><i class="bi bi-folder2-open"></i><span>Meus Arquivos</span></a>
+        <a class="sidebar-link<?= $isActive('arquivos') ?>" href="<?= Url::to('/arquivos') ?>"><i class="bi bi-folder2-open"></i><span>Meus Arquivos</span></a>
         <a class="sidebar-link<?= $isActive('biblioteca') ?>" href="#" aria-disabled="true"><i class="bi bi-book"></i><span>Biblioteca</span></a>
         <a class="sidebar-link<?= $isActive('planner') ?>" href="#" aria-disabled="true"><i class="bi bi-check2-square"></i><span>Planner</span></a>
         <a class="sidebar-link<?= $isActive('calendario') ?>" href="#" aria-disabled="true"><i class="bi bi-calendar3"></i><span>Calendário</span></a>
