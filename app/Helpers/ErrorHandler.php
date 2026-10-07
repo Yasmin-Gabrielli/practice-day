@@ -18,7 +18,10 @@ final class ErrorHandler
     {
         error_reporting(E_ALL);
         ini_set('display_errors', $config['app']['debug'] ? '1' : '0');
-        set_error_handler(static function (int $severity, string $message, string $file, int $line): never {
+        set_error_handler(static function (int $severity, string $message, string $file, int $line) {
+            if ((error_reporting() & $severity) === 0) {
+                return false; // Erros suprimidos com @ continuam silenciosos.
+            }
             throw new ErrorException($message, 0, $severity, $file, $line);
         });
     }

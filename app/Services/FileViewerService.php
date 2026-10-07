@@ -8,6 +8,7 @@ use App\Exceptions\NotFoundException;
 use App\Helpers\Uuid;
 use App\Repositories\FileRepository;
 use App\Repositories\FileViewerRepository;
+use App\Services\DocxHtmlConverter;
 
 final class FileViewerService extends Service
 {
@@ -100,7 +101,7 @@ final class FileViewerService extends Service
     }
 
     /**
-     * Verifica se o EPUB ja esta catalogado na Biblioteca do usuario.
+     * Verifica se um arquivo de leitura ja esta catalogado na Biblioteca do usuario.
      * Se nao estiver, cria um vinculo (sem duplicar o arquivo fisico).
      *
      * @param array<string,mixed> $file
@@ -112,34 +113,115 @@ final class FileViewerService extends Service
         $library = $this->viewerRepo->findLibraryByFileId($fileId, $userId);
 
         if ($library === null) {
-            // Cria vinculo na tabela biblioteca
             $libraryId = Uuid::v4();
-            $titulo    = pathinfo((string) $file['nome_original'], PATHINFO_FILENAME);
             $this->viewerRepo->createLibraryEntry([
-                'id'          => $libraryId,
-                'usuario_id'  => $userId,
-                'titulo'      => mb_substr($titulo, 0, 200),
-                'arquivo_id'  => $fileId,
-                'caminho'     => (string) $file['caminho_armazenamento'],
-                'formato'     => 'epub',
+                'id'             => $libraryId,
+                'arquivo_id'     => $fileId,
+                'total_paginas'  => 0,
             ]);
             $library = $this->viewerRepo->findLibraryByFileId($fileId, $userId);
         }
 
         if ($library === null) {
-            return ['id' => null, 'progresso' => null, 'marcadores' => [], 'destaques' => [], 'anotacoes' => []];
+            return [
+                'id'         => null,
+                'titulo'     => pathinfo((string) $file['nome_original'], PATHINFO_FILENAME),
+                'progresso'  => null,
+                'marcadores' => [],
+                'destaques'  => [],
+                'anotacoes'  => [],
+            ];
         }
 
         $libId = (string) $library['id'];
+        $titulo = pathinfo((string) ($library['nome_original'] ?? $file['nome_original']), PATHINFO_FILENAME);
 
         return [
             'id'         => $libId,
-            'titulo'     => $library['titulo'] ?? $file['nome_original'],
-            'progresso'  => $this->viewerRepo->getProgress($libId, $userId),
+            'titulo'     => $titulo,
+            'progresso'  => $this->viewerRepo->getProgressSummary($libId, $userId),
             'marcadores' => $this->viewerRepo->getBookmarks($libId, $userId),
             'destaques'  => $this->viewerRepo->getHighlights($libId, $userId),
             'anotacoes'  => $this->viewerRepo->getNotes($libId, $userId),
         ];
+    }
+
+    public function shelf(string $userId): array
+    {
+        return ['books' => $this->viewerRepo->shelf($userId), 'available' => $this->viewerRepo->availableForShelf($userId)];
+    }
+
+    public function addToShelf(string $userId, string $fileId): void
+    {
+        $file = $this->getViewableFile($userId, $fileId);
+        if (!in_array(strtolower((string) ($file['extensao'] ?? '')), ['pdf', 'epub'], true)) {
+            throw new \App\Exceptions\ValidationException(['arquivo' => 'A biblioteca aceita apenas arquivos PDF ou EPUB.']);
+        }
+        $this->getOrCreateLibraryEntry($userId, $fileId, $file);
+    }
+
+    /**
+     * @return array{html: string, engine: string, message: string|null}
+     * @throws NotFoundException
+     */
+    public function convertDocxToHtml(string $userId, string $fileId): array
+    {
+        $file = $this->getViewableFile($userId, $fileId);
+        $ext  = strtolower((string) ($file['extensao'] ?? ''));
+        if ($ext !== 'docx') {
+            throw new NotFoundException('Arquivo não é DOCX.');
+        }
+
+        $path = $this->resolvePhysicalPath($file);
+        if ($path === null) {
+            throw new NotFoundException('Caminho do arquivo inválido.');
+        }
+
+        return (new DocxHtmlConverter())->convertFile($path);
+    }
+
+    /**
+     * @param array<string,mixed> $payload
+     * @return array<string,mixed>
+     */
+    public function saveReadingProgress(string $userId, string $libraryId, array $payload): array
+    {
+        $library = $this->viewerRepo->findLibraryById($libraryId, $userId);
+        if ($library === null) {
+            throw new NotFoundException('Registro de biblioteca não encontrado.');
+        }
+
+        $pagina   = (int) ($payload['pagina_atual'] ?? 1);
+        $progress = (float) ($payload['progresso_porcentagem'] ?? 0);
+        $cfi      = isset($payload['cfi']) ? (string) $payload['cfi'] : null;
+        $total    = isset($payload['total_paginas']) ? (int) $payload['total_paginas'] : 0;
+
+        if ($total > 0) {
+            $this->viewerRepo->updateTotalPages($libraryId, $total);
+        }
+
+        $this->viewerRepo->updateReadingProgress($libraryId, $pagina, $progress, $cfi);
+
+        $tempo   = (int) ($payload['tempo_leitura_segundos'] ?? 0);
+        $paginas = (int) ($payload['paginas_lidas_sessao'] ?? 0);
+        if ($tempo > 0 || $paginas > 0) {
+            $this->viewerRepo->recordReadingSession($libraryId, $tempo, $paginas);
+        }
+
+        return $this->viewerRepo->getProgressSummary($libraryId, $userId) ?? [];
+    }
+
+    /**
+     * @return array<string,mixed>
+     */
+    public function assertLibraryAccess(string $userId, string $libraryId): array
+    {
+        $library = $this->viewerRepo->findLibraryById($libraryId, $userId);
+        if ($library === null) {
+            throw new NotFoundException('Acesso negado à biblioteca.');
+        }
+
+        return $library;
     }
 
     // -----------------------------------------------------------------------

@@ -1,4 +1,5 @@
 .env
+node_modules/
 /storage/uploads/*
 !/storage/uploads/.gitkeep
 /storage/scanner/*
@@ -7,3 +8,6 @@
 !/storage/documentos/.gitkeep
 /storage/sessions/*
 !/storage/sessions/.gitkeep
+
+/storage/users/*
+!/storage/users/.gitkeep

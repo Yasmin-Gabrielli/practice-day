@@ -8,6 +8,9 @@ use App\Exceptions\AuthenticationException;
 use App\Exceptions\ValidationException;
 use App\Helpers\Csrf;
 use App\Helpers\Flash;
+use App\Repositories\DashboardWidgetRepository;
+use App\Repositories\UserSettingsRepository;
+use App\Repositories\UserThemeRepository;
 use App\Services\AuthenticationService;
 use App\Validators\LoginValidator;
 use App\Validators\RegistrationValidator;
@@ -80,6 +83,13 @@ final class AuthController extends Controller
             $_SESSION['user_avatar'] = $session['avatar'];
             $_SESSION['session_token'] = $session['token'];
             $_SESSION['session_expires_at'] = $session['expires_at'];
+
+            $database = $this->config['database'];
+            $userId = $session['id'];
+            (new UserThemeRepository($database))->createDefaultPreferences($userId);
+            (new DashboardWidgetRepository($database))->ensureDefaultsForUser($userId);
+            $_SESSION['user_settings'] = (new UserSettingsRepository($database))->getForUser($userId);
+
             $this->redirect('/dashboard');
         } catch (ValidationException|AuthenticationException $exception) {
             $errors = $exception instanceof ValidationException ? $exception->errors() : ['credenciais' => $exception->getMessage()];

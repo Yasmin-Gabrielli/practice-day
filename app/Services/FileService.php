@@ -530,4 +530,53 @@ final class FileService extends Service
         $hexColor = preg_match('/^#[0-9a-fA-F]{6}$/', $color) ? $color : '#2563eb';
         $this->repo->createTag(Uuid::v4(), $userId, $clean, $hexColor);
     }
+
+    /**
+     * Retorna apenas os arquivos favoritados do usuário (para a página Favoritos).
+     * @return list<array<string,mixed>>
+     */
+    public function favorites(string $userId, ?string $search = null): array
+    {
+        return $this->repo->files($userId, null, true, null, $search);
+    }
+
+    /**
+     * Retorna os arquivos na lixeira do usuário (para a página Lixeira).
+     * @return list<array<string,mixed>>
+     */
+    public function trashListing(string $userId, ?string $search = null): array
+    {
+        return $this->repo->trashFiles($userId, $search);
+    }
+
+    /**
+     * Retorna estatísticas de armazenamento do usuário.
+     * @return array{total_arquivos: int, total_bytes: int, total_favoritos: int, total_lixeira: int}
+     */
+    public function stats(string $userId): array
+    {
+        return $this->repo->stats($userId);
+    }
+
+    /**
+     * Esvazia a lixeira do usuário: apaga fisicamente todos os arquivos e remove os registros.
+     * @return int Quantidade de arquivos destruídos
+     */
+    public function emptyTrash(string $userId): int
+    {
+        $files = $this->repo->trashFiles($userId);
+        $count = 0;
+
+        foreach ($files as $file) {
+            try {
+                $this->deletePermanently($userId, (string) $file['id']);
+                $count++;
+            } catch (\Throwable) {
+                // Continua para o próximo mesmo se um falhar
+            }
+        }
+
+        return $count;
+    }
 }
+

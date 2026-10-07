@@ -40,6 +40,10 @@ $getFileIcon = static function (?string $ext): string {
     };
 };
 
+$isViewable = static function (?string $ext): bool {
+    return in_array(strtolower((string) $ext), ['pdf', 'epub', 'txt', 'png', 'jpg', 'jpeg', 'docx'], true);
+};
+
 require dirname(__DIR__) . '/layouts/header.php';
 ?>
 
@@ -414,6 +418,11 @@ require dirname(__DIR__) . '/layouts/header.php';
                                             </button>
                                         </form>
                                     <?php else: ?>
+                                        <?php if ($isViewable($file['extensao'])): ?>
+                                            <a class="btn btn-sm btn-primary d-inline-flex align-items-center gap-1" href="<?= Url::to('/arquivos/visualizar/' . rawurlencode($file['id'])) ?>" title="Visualizar no site">
+                                                <i class="bi bi-eye"></i><span>Abrir</span>
+                                            </a>
+                                        <?php endif; ?>
                                         <a class="btn-download" href="<?= Url::to('/arquivos/' . rawurlencode($file['id']) . '/download') ?>" title="Baixar arquivo">
                                             <i class="bi bi-download"></i><span>Baixar</span>
                                         </a>
@@ -423,6 +432,13 @@ require dirname(__DIR__) . '/layouts/header.php';
                                                 <i class="bi bi-three-dots"></i>
                                             </button>
                                             <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                                <?php if ($isViewable($file['extensao'])): ?>
+                                                <li>
+                                                    <a class="dropdown-item" href="<?= Url::to('/arquivos/visualizar/' . rawurlencode($file['id'])) ?>">
+                                                        <i class="bi bi-eye"></i>Visualizar
+                                                    </a>
+                                                </li>
+                                                <?php endif; ?>
                                                 <li>
                                                     <a class="dropdown-item" href="<?= Url::to('/arquivos/' . rawurlencode($file['id']) . '/download') ?>">
                                                         <i class="bi bi-download"></i>Download seguro
@@ -566,6 +582,11 @@ require dirname(__DIR__) . '/layouts/header.php';
                                                     </div>
                                                 <?php else: ?>
                                                     <div class="d-inline-flex align-items-center gap-1">
+                                                        <?php if ($isViewable($file['extensao'])): ?>
+                                                        <a class="btn btn-sm btn-primary border-0" href="<?= Url::to('/arquivos/visualizar/' . rawurlencode($file['id'])) ?>" title="Visualizar">
+                                                            <i class="bi bi-eye"></i>
+                                                        </a>
+                                                        <?php endif; ?>
                                                         <a class="btn btn-sm btn-light border" href="<?= Url::to('/arquivos/' . rawurlencode($file['id']) . '/download') ?>" title="Baixar">
                                                             <i class="bi bi-download"></i>
                                                         </a>
@@ -574,6 +595,13 @@ require dirname(__DIR__) . '/layouts/header.php';
                                                                 <i class="bi bi-three-dots-vertical"></i>
                                                             </button>
                                                             <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                                                <?php if ($isViewable($file['extensao'])): ?>
+                                                                <li>
+                                                                    <a class="dropdown-item" href="<?= Url::to('/arquivos/visualizar/' . rawurlencode($file['id'])) ?>">
+                                                                        <i class="bi bi-eye"></i>Visualizar
+                                                                    </a>
+                                                                </li>
+                                                                <?php endif; ?>
                                                                 <li>
                                                                     <a class="dropdown-item" href="<?= Url::to('/arquivos/' . rawurlencode($file['id']) . '/download') ?>">
                                                                         <i class="bi bi-download"></i>Download

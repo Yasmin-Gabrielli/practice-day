@@ -203,10 +203,12 @@ CREATE TABLE lixeira_arquivos (
 CREATE TABLE digitalizacoes (
     id CHAR(36) PRIMARY KEY,
     usuario_id CHAR(36) NOT NULL,
+    disciplina_id CHAR(36),
     titulo VARCHAR(255) NOT NULL,
     total_paginas INT DEFAULT 0,
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE,
+    FOREIGN KEY (disciplina_id) REFERENCES disciplinas(id) ON DELETE SET NULL
 );
 
 CREATE TABLE paginas_digitalizacao (

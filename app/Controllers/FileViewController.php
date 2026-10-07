@@ -9,6 +9,7 @@ use App\Exceptions\NotFoundException;
 use App\Helpers\Csrf;
 use App\Helpers\Url;
 use App\Middleware\AuthenticationMiddleware;
+use App\Repositories\FileViewerRepository;
 use App\Services\FileViewerService;
 
 final class FileViewController extends Controller
@@ -35,7 +36,7 @@ final class FileViewController extends Controller
      * GET /arquivos/visualizar/{id}
      * Pagina principal de visualizacao de arquivo.
      */
-    public function view(string $id): void
+    public function show(string $id): void
     {
         $this->auth();
 
@@ -71,6 +72,7 @@ final class FileViewController extends Controller
             'docx'               => 'docx',
             default              => 'unsupported',
         };
+        $libraryData = $viewerType === 'pdf' ? $service->getOrCreateLibraryEntry($this->u(), $id, $file) : null;
 
         $txtContent = null;
         if ($viewerType === 'txt') {
@@ -81,18 +83,37 @@ final class FileViewController extends Controller
             }
         }
 
+        $docxPreview = null;
+        if ($viewerType === 'docx') {
+            try {
+                $docxPreview = $service->convertDocxToHtml($this->u(), $id);
+            } catch (\Throwable $e) {
+                $docxPreview = [
+                    'html'    => '',
+                    'engine'  => 'none',
+                    'message' => $e->getMessage(),
+                ];
+            }
+        }
+
         $this->view('arquivos/view', [
             'title'       => htmlspecialchars($file['nome_original'], ENT_QUOTES, 'UTF-8') . ' | Visualizador | PracticeDay',
             'csrfToken'   => Csrf::token(),
             'userName'    => $_SESSION['user_name'] ?? '',
             'userAvatar'  => $_SESSION['user_avatar'] ?? null,
-            'activePage'  => 'arquivos',
+            'activePage'  => $viewerType === 'pdf' ? 'biblioteca' : 'arquivos',
             'file'        => $file,
             'viewerType'  => $viewerType,
             'txtContent'  => $txtContent,
+            'docxPreview' => $docxPreview,
             'serveUrl'    => Url::to('/arquivos/' . rawurlencode($id) . '/servir'),
             'downloadUrl' => Url::to('/arquivos/' . rawurlencode($id) . '/download'),
             'backUrl'     => Url::to('/arquivos'),
+            'library'     => $libraryData,
+            'libraryApi'  => $libraryData !== null ? [
+                'progresso' => Url::to('/arquivos/biblioteca/' . rawurlencode((string) $libraryData['id']) . '/progresso'),
+                'marcadores' => Url::to('/arquivos/biblioteca/' . rawurlencode((string) $libraryData['id']) . '/marcadores'),
+            ] : [],
         ]);
     }
 
@@ -130,7 +151,7 @@ final class FileViewController extends Controller
         $ext  = strtolower((string) ($file['extensao'] ?? ''));
         $mime = (string) ($file['tipo_mime'] ?? 'application/octet-stream');
 
-        $isInline = in_array($ext, ['pdf', 'png', 'jpg', 'jpeg'], true);
+        $isInline = in_array($ext, ['pdf', 'png', 'jpg', 'jpeg', 'epub'], true);
 
         header('Content-Type: ' . $mime);
         header('Content-Length: ' . (string) filesize($path));
@@ -193,6 +214,163 @@ final class FileViewController extends Controller
             'serveUrl'    => Url::to('/arquivos/' . rawurlencode($id) . '/servir'),
             'downloadUrl' => Url::to('/arquivos/' . rawurlencode($id) . '/download'),
             'backUrl'     => Url::to('/arquivos'),
+            'libraryApi'  => [
+                'progresso'  => Url::to('/arquivos/biblioteca/' . rawurlencode((string) $libraryData['id']) . '/progresso'),
+                'marcadores' => Url::to('/arquivos/biblioteca/' . rawurlencode((string) $libraryData['id']) . '/marcadores'),
+                'destaques'  => Url::to('/arquivos/biblioteca/' . rawurlencode((string) $libraryData['id']) . '/destaques'),
+                'anotacoes'  => Url::to('/arquivos/biblioteca/' . rawurlencode((string) $libraryData['id']) . '/anotacoes'),
+            ],
         ]);
+    }
+
+    /**
+     * POST /arquivos/biblioteca/{libraryId}/progresso
+     */
+    public function saveProgress(string $libraryId): void
+    {
+        $this->auth();
+        header('Content-Type: application/json; charset=utf-8');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['ok' => false, 'error' => 'Método não permitido.']);
+            return;
+        }
+
+        try {
+            Csrf::validate($_POST);
+        } catch (\Throwable) {
+            http_response_code(403);
+            echo json_encode(['ok' => false, 'error' => 'Token CSRF inválido.']);
+            return;
+        }
+
+        $service = new FileViewerService($this->config);
+
+        try {
+            $data = $service->saveReadingProgress($this->u(), $libraryId, $_POST);
+            echo json_encode(['ok' => true, 'progresso' => $data]);
+        } catch (NotFoundException $e) {
+            http_response_code(404);
+            echo json_encode(['ok' => false, 'error' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * POST /arquivos/biblioteca/{libraryId}/marcadores
+     */
+    public function saveBookmark(string $libraryId): void
+    {
+        $this->jsonLibraryMutation($libraryId, function (FileViewerService $service, FileViewerRepository $repo) use ($libraryId): array {
+            $pagina = (int) ($_POST['numero_pagina'] ?? 0);
+            $titulo = isset($_POST['titulo']) ? (string) $_POST['titulo'] : null;
+            $action = (string) ($_POST['action'] ?? 'create');
+
+            if ($action === 'delete') {
+                $id = (string) ($_POST['id'] ?? '');
+                $ok = $repo->deleteBookmark($libraryId, $this->u(), $id);
+
+                return ['ok' => $ok, 'marcadores' => $repo->getBookmarks($libraryId, $this->u())];
+            }
+
+            $item = $repo->addBookmark($libraryId, $this->u(), $pagina, $titulo);
+            if ($item === null) {
+                throw new NotFoundException('Não foi possível salvar o marcador.');
+            }
+
+            return ['ok' => true, 'marcador' => $item, 'marcadores' => $repo->getBookmarks($libraryId, $this->u())];
+        });
+    }
+
+    /**
+     * POST /arquivos/biblioteca/{libraryId}/destaques
+     */
+    public function saveHighlight(string $libraryId): void
+    {
+        $this->jsonLibraryMutation($libraryId, function (FileViewerService $service, FileViewerRepository $repo) use ($libraryId): array {
+            $action = (string) ($_POST['action'] ?? 'create');
+
+            if ($action === 'delete') {
+                $id = (string) ($_POST['id'] ?? '');
+                $ok = $repo->deleteHighlight($libraryId, $this->u(), $id);
+
+                return ['ok' => $ok, 'destaques' => $repo->getHighlights($libraryId, $this->u())];
+            }
+
+            $pagina = (int) ($_POST['numero_pagina'] ?? 0);
+            $texto  = trim((string) ($_POST['texto_selecionado'] ?? ''));
+            $cor    = (string) ($_POST['cor'] ?? '#FFFF00');
+
+            if ($texto === '') {
+                throw new NotFoundException('Texto do destaque vazio.');
+            }
+
+            $item = $repo->addHighlight($libraryId, $this->u(), $pagina, $texto, $cor);
+            if ($item === null) {
+                throw new NotFoundException('Não foi possível salvar o destaque.');
+            }
+
+            return ['ok' => true, 'destaque' => $item, 'destaques' => $repo->getHighlights($libraryId, $this->u())];
+        });
+    }
+
+    /**
+     * POST /arquivos/biblioteca/{libraryId}/anotacoes
+     */
+    public function saveNote(string $libraryId): void
+    {
+        $this->jsonLibraryMutation($libraryId, function (FileViewerService $service, FileViewerRepository $repo) use ($libraryId): array {
+            $action = (string) ($_POST['action'] ?? 'create');
+
+            if ($action === 'delete') {
+                $id = (string) ($_POST['id'] ?? '');
+                $ok = $repo->deleteNote($libraryId, $this->u(), $id);
+
+                return ['ok' => $ok, 'anotacoes' => $repo->getNotes($libraryId, $this->u())];
+            }
+
+            $destaqueId = (string) ($_POST['destaque_id'] ?? '');
+            $conteudo   = trim((string) ($_POST['conteudo'] ?? ''));
+
+            if ($destaqueId === '' || $conteudo === '') {
+                throw new NotFoundException('Destaque e conteúdo são obrigatórios.');
+            }
+
+            $item = $repo->addNote($libraryId, $this->u(), $destaqueId, $conteudo);
+            if ($item === null) {
+                throw new NotFoundException('Não foi possível salvar a anotação.');
+            }
+
+            return ['ok' => true, 'anotacao' => $item, 'anotacoes' => $repo->getNotes($libraryId, $this->u())];
+        });
+    }
+
+    /**
+     * @param callable(FileViewerService, \App\Repositories\FileViewerRepository): array<string,mixed> $callback
+     */
+    private function jsonLibraryMutation(string $libraryId, callable $callback): void
+    {
+        $this->auth();
+        header('Content-Type: application/json; charset=utf-8');
+
+        try {
+            Csrf::validate($_POST);
+        } catch (\Throwable) {
+            http_response_code(403);
+            echo json_encode(['ok' => false, 'error' => 'Token CSRF inválido.']);
+            return;
+        }
+
+        $service = new FileViewerService($this->config);
+        $repo    = new FileViewerRepository($this->config['database']);
+
+        try {
+            $service->assertLibraryAccess($this->u(), $libraryId);
+            $payload = $callback($service, $repo);
+            echo json_encode($payload);
+        } catch (NotFoundException $e) {
+            http_response_code(404);
+            echo json_encode(['ok' => false, 'error' => $e->getMessage()]);
+        }
     }
 }

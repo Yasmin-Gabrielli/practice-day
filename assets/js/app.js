@@ -285,3 +285,34 @@ function escapeHtml(str) {
     div.textContent = str;
     return div.innerHTML;
 }
+
+// Garante que o item ativo da barra de navegação lateral esteja visível ao carregar a página
+document.addEventListener('DOMContentLoaded', () => {
+    const activeSidebarLink = document.querySelector('.sidebar-scroll .sidebar-link.active');
+    if (activeSidebarLink) {
+        activeSidebarLink.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+});
+
+// Seletor de ícone de disciplina (mostra o ícone em vez do nome da classe)
+document.querySelectorAll('[data-icon-picker]').forEach((picker) => {
+    const input = document.getElementById(picker.dataset.iconPicker);
+    if (!input) return;
+
+    const items = picker.querySelectorAll('.icon-picker-item');
+    const sync = () => {
+        items.forEach((item) => item.classList.toggle('is-active', item.dataset.icon === input.value));
+    };
+
+    items.forEach((item) => {
+        item.addEventListener('click', () => {
+            input.value = item.dataset.icon;
+            sync();
+        });
+    });
+
+    if (!input.value && items.length) {
+        input.value = items[0].dataset.icon;
+    }
+    sync();
+});

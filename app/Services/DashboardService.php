@@ -22,6 +22,7 @@ final class DashboardService extends Service
     /** @return array<string, mixed> */
     public function forUser(string $userId): array
     {
+        $this->widgets->ensureDefaultsForUser($userId);
         $widgets = $this->widgetConfiguration($this->widgets->forUser($userId));
 
         return [

@@ -11,7 +11,9 @@ use App\Helpers\Uuid;
 use App\Repositories\LoginAttemptRepository;
 use App\Repositories\UserRepository;
 use App\Repositories\UserSessionRepository;
+use App\Repositories\DashboardWidgetRepository;
 use App\Repositories\UserSettingsRepository;
+use App\Repositories\UserThemeRepository;
 use DateTimeImmutable;
 use PDOException;
 
@@ -46,6 +48,8 @@ final class AuthenticationService extends Service
             $connection->beginTransaction();
             $this->users->create($userId, $input['nome'], $input['email'], password_hash($input['senha'], PASSWORD_DEFAULT));
             $this->settings->createDefaults(Uuid::v4(), $userId);
+            (new UserThemeRepository($this->config['database']))->createDefaultPreferences($userId);
+            (new DashboardWidgetRepository($this->config['database']))->ensureDefaultsForUser($userId);
             $connection->commit();
         } catch (PDOException $exception) {
             if ($connection->inTransaction()) {

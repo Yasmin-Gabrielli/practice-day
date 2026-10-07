@@ -33,4 +33,18 @@ final class UserRepository extends Repository
         );
         $statement->execute(['id' => $id, 'nome' => $name, 'email' => $email, 'senha_hash' => $passwordHash]);
     }
+
+    public function findById(string $id): ?array
+    {
+        $stmt = $this->db->prepare('SELECT id, nome, email, avatar FROM usuarios WHERE id = :id LIMIT 1');
+        $stmt->execute(['id' => $id]);
+        $user = $stmt->fetch();
+        return is_array($user) ? $user : null;
+    }
+
+    public function updateProfile(string $id, string $name, string $email, ?string $avatar): void
+    {
+        $stmt = $this->db->prepare('UPDATE usuarios SET nome = :nome, email = :email, avatar = :avatar WHERE id = :id');
+        $stmt->execute(['id' => $id, 'nome' => $name, 'email' => $email, 'avatar' => $avatar]);
+    }
 }
