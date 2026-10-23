@@ -27,6 +27,8 @@
 .epub-list { list-style: none; padding: 0; margin: 0; display: grid; gap: .65rem; font-size: .82rem; }
 .epub-list li { padding: .5rem .65rem; border-radius: .6rem; background: #f8fafc; border: 1px solid #eef1f5; }
 .epub-stage { min-height: min(75vh, 920px); }
+.epub-stage:fullscreen { background: #f3f4f6; display: flex; align-items: center; justify-content: center; }
+.epub-stage:fullscreen .epub-viewer-host { height: 100vh; width: 100%; max-width: 900px; margin: 0 auto; }
 .epub-viewer-host { width: 100%; height: min(75vh, 920px); background: #f3f4f6; }
 
 @media (max-width: 991px) {

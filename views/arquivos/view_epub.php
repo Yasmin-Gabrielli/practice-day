@@ -44,6 +44,7 @@ require dirname(__DIR__) . '/layouts/header.php';
                 <div class="file-viewer-actions">
                     <button type="button" class="btn btn-light border" data-epub-prev><i class="bi bi-chevron-left"></i> Anterior</button>
                     <button type="button" class="btn btn-light border" data-epub-next>Próximo <i class="bi bi-chevron-right"></i></button>
+                    <button type="button" class="btn btn-light border" data-epub-flow title="Alternar modo de leitura (paginado/rolagem)"><i class="bi bi-arrows-move"></i> Modo</button>
                     <button type="button" class="btn btn-light border" data-epub-bookmark><i class="bi bi-bookmark"></i> Marcador</button>
                     <button type="button" class="btn btn-light border" data-epub-highlight><i class="bi bi-highlighter"></i> Destacar</button>
                     <button type="button" class="btn btn-light border" data-epub-note><i class="bi bi-journal-text"></i> Anotar</button>

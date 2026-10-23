@@ -4,7 +4,7 @@ $errors = $feedback['errors'] ?? [];
 require dirname(__DIR__) . '/layouts/header.php';
 ?>
 <div class="app-shell"><?php require dirname(__DIR__) . '/layouts/sidebar.php'; ?><div class="app-content"><?php require dirname(__DIR__) . '/layouts/navbar.php'; ?><main class="page-content scanner-page">
-<section class="page-heading"><div><p class="eyebrow">Documentos físicos</p><h1>Scanner</h1><p>Capture páginas pela câmera ou selecione imagens do seu computador.</p></div><button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#scan-modal"><i class="bi bi-camera me-1"></i>Nova digitalização</button></section>
+<section class="page-heading"><div><p class="eyebrow">Documentos físicos</p><h1>Câmera</h1><p>Capture páginas pela câmera ou selecione imagens do seu computador.</p></div><button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#scan-modal"><i class="bi bi-camera me-1"></i>Nova digitalização</button></section>
 <?php if (isset($feedback['success'])): ?><div class="alert alert-success border-0 shadow-sm"><?= htmlspecialchars((string) $feedback['success'], ENT_QUOTES, 'UTF-8') ?></div><?php endif; ?>
 <?php if ($errors !== []): ?><div class="alert alert-danger border-0 shadow-sm"><?php foreach ($errors as $error): ?><div><?= htmlspecialchars((string) $error, ENT_QUOTES, 'UTF-8') ?></div><?php endforeach; ?></div><?php endif; ?>
 

@@ -13,7 +13,7 @@ return [
     'nav.favoritos' => 'Favorites',
     'nav.lixeira' => 'Trash',
     'nav.biblioteca' => 'Library',
-    'nav.scanner' => 'Scanner',
+    'nav.scanner' => 'Camera',
     'nav.planner' => 'Planner',
     'nav.calendario' => 'Calendar',
     'nav.notas' => 'Notes',

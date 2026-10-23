@@ -2,6 +2,34 @@
 use App\Helpers\Url;
 require dirname(__DIR__) . '/layouts/header.php';
 ?>
+<style>
+.pomodoro-timer-card {
+    background-color: transparent !important;
+    position: relative;
+    overflow: hidden;
+}
+.pomodoro-timer-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.6);
+    z-index: 0;
+    pointer-events: none;
+}
+[data-bs-theme="dark"] .pomodoro-timer-card::before {
+    background: rgba(0,0,0,0.55);
+}
+.pomodoro-timer-card > * {
+    position: relative;
+    z-index: 1;
+}
+.app-body:not(.app-has-wallpaper) .pomodoro-timer-card {
+    background-color: var(--bs-card-bg) !important;
+}
+.app-body:not(.app-has-wallpaper) .pomodoro-timer-card::before {
+    display: none;
+}
+</style>
 <div class="app-shell">
     <?php require dirname(__DIR__) . '/layouts/sidebar.php'; ?>
     <div class="app-content">

@@ -15,6 +15,8 @@
   let sessionStart = Date.now();
   let lastLocation = null;
   let totalLocations = 0;
+  let currentFlow = 'paginated';
+  let lastSelection = null; // { text, cfiRange }
   let state = {
     marcadores: cfg.initial.marcadores || [],
     destaques: cfg.initial.destaques || [],
@@ -135,6 +137,16 @@
       saveProgress({ paginas: 1 }).catch(() => {});
     });
 
+    rendition.on('selected', (cfiRange, contents) => {
+      try {
+        const sel = contents?.window?.getSelection?.();
+        const text = sel?.toString()?.trim() || '';
+        if (text) {
+          lastSelection = { text, cfiRange };
+        }
+      } catch (_) {}
+    });
+
     setInterval(() => {
       saveProgress({ tempo: 15, paginas: 0 }).catch(() => {});
     }, 15000);
@@ -156,6 +168,25 @@
 
   document.querySelector('[data-epub-prev]')?.addEventListener('click', () => rendition?.prev());
   document.querySelector('[data-epub-next]')?.addEventListener('click', () => rendition?.next());
+
+  document.querySelector('[data-epub-flow]')?.addEventListener('click', () => {
+    currentFlow = currentFlow === 'paginated' ? 'scrolled' : 'paginated';
+    try { rendition?.flow?.(currentFlow); } catch (_) {}
+    const btn = document.querySelector('[data-epub-flow]');
+    if (btn) btn.title = currentFlow === 'paginated' ? 'Modo: paginado (clique para rolagem)' : 'Modo: rolagem (clique para paginado)';
+  });
+
+  // Swipe para passar páginas no mobile
+  let touchStartX = 0;
+  host?.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches?.[0]?.clientX || 0; }, { passive: true });
+  host?.addEventListener('touchend', (e) => {
+    const endX = e.changedTouches?.[0]?.clientX || 0;
+    const delta = endX - touchStartX;
+    if (Math.abs(delta) > 50) {
+      if (delta < 0) rendition?.next();
+      else rendition?.prev();
+    }
+  }, { passive: true });
 
   document.addEventListener('keydown', (e) => {
     if (!rendition) return;
@@ -200,14 +231,14 @@
   });
 
   document.querySelector('[data-epub-highlight]')?.addEventListener('click', async () => {
-    const sel = window.getSelection();
-    const text = sel?.toString()?.trim();
+    const text = (lastSelection?.text || window.getSelection()?.toString() || '').trim();
     if (!text) {
       window.alert('Selecione um trecho no livro para destacar.');
       return;
     }
+    const cfiRange = lastSelection?.cfiRange || '';
     const loc = rendition?.currentLocation();
-    const cfi = loc?.start?.cfi || '';
+    const cfi = cfiRange || loc?.start?.cfi || '';
     const pct = book?.locations?.percentageFromCfi?.(cfi);
     const pagina = pct != null ? Math.max(1, Math.round(pct * 100)) : 1;
     const payload = `${text}\n[cfi:${cfi}]`;
@@ -220,18 +251,19 @@
       state.destaques = data.destaques;
       renderLists();
     }
-    sel?.removeAllRanges();
+    try { if (cfiRange) rendition?.annotations?.highlight?.(cfiRange, {}, () => {}, 'hl'); } catch (_) {}
+    lastSelection = null;
   });
 
   document.querySelector('[data-epub-note]')?.addEventListener('click', async () => {
-    const sel = window.getSelection();
-    const text = sel?.toString()?.trim();
+    const text = (lastSelection?.text || window.getSelection()?.toString() || '').trim();
     if (!text) {
       window.alert('Selecione um trecho para vincular a anotação.');
       return;
     }
+    const cfiRange = lastSelection?.cfiRange || '';
     const loc = rendition?.currentLocation();
-    const cfi = loc?.start?.cfi || '';
+    const cfi = cfiRange || loc?.start?.cfi || '';
     const pct = book?.locations?.percentageFromCfi?.(cfi);
     const pagina = pct != null ? Math.max(1, Math.round(pct * 100)) : 1;
     const highlightRes = await postForm(cfg.api.destaques, {
@@ -250,7 +282,7 @@
     if (highlightRes.destaques) state.destaques = highlightRes.destaques;
     if (noteRes.anotacoes) state.anotacoes = noteRes.anotacoes;
     renderLists();
-    sel?.removeAllRanges();
+    lastSelection = null;
   });
 
   document.querySelector('[data-viewer-fullscreen]')?.addEventListener('click', () => {

@@ -47,7 +47,7 @@ final class DashboardRepository extends Repository
     public function upcomingTasks(string $userId): array
     {
         $statement = $this->db->prepare(
-            "SELECT t.titulo, t.prioridade, t.status, t.data_vencimento, d.nome AS disciplina_nome
+            "SELECT t.id, t.titulo, t.prioridade, t.status, t.data_vencimento, d.nome AS disciplina_nome
              FROM tarefas t
              LEFT JOIN disciplinas d ON d.id = t.disciplina_id AND d.usuario_id = t.usuario_id
              WHERE t.usuario_id = :usuario_id AND t.status <> 'concluido'
@@ -62,7 +62,7 @@ final class DashboardRepository extends Repository
     public function recentFiles(string $userId): array
     {
         $statement = $this->db->prepare(
-            'SELECT nome_original, nome_arquivo, extensao, tipo_mime, criado_em
+            'SELECT id, nome_original, nome_arquivo, extensao, tipo_mime, criado_em
              FROM arquivos WHERE usuario_id = :usuario_id AND excluido = FALSE
              ORDER BY criado_em DESC LIMIT 4'
         );
@@ -90,7 +90,7 @@ final class DashboardRepository extends Repository
     public function disciplines(string $userId): array
     {
         $statement = $this->db->prepare(
-            'SELECT nome, cor, icone FROM disciplinas WHERE usuario_id = :usuario_id ORDER BY nome ASC LIMIT 8'
+            'SELECT id, nome, cor, icone FROM disciplinas WHERE usuario_id = :usuario_id ORDER BY nome ASC LIMIT 8'
         );
         $statement->execute(['usuario_id' => $userId]);
 
