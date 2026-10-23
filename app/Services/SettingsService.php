@@ -15,6 +15,7 @@ use App\Repositories\UserThemeRepository;
 final class SettingsService extends Service
 {
     private const IMAGE_MAX_BYTES = 5 * 1024 * 1024;
+    private const WALLPAPER_MAX_BYTES = 25 * 1024 * 1024;
     /** @var array<string, list<string>> */
     private const IMAGE_MIME_BY_EXT = [
         'jpg' => ['image/jpeg'],
@@ -197,7 +198,8 @@ final class SettingsService extends Service
         }
 
         $size = (int) ($upload['size'] ?? 0);
-        if ($size <= 0 || $size > self::IMAGE_MAX_BYTES) {
+        $maxBytes = $kind === 'wallpaper' ? self::WALLPAPER_MAX_BYTES : self::IMAGE_MAX_BYTES;
+        if ($size <= 0 || $size > $maxBytes) {
             throw new ValidationException(['geral' => Lang::get('settings.error.file_size')]);
         }
 

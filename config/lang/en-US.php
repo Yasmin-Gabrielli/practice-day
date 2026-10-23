@@ -115,7 +115,7 @@ return [
     'settings.font_size_large' => 'Large',
     'settings.wallpaper' => 'Wallpaper',
     'settings.wallpaper_preview' => 'Wallpaper preview',
-    'settings.wallpaper_hint' => 'Upload a PNG, JPG or WEBP image up to 5 MB.',
+    'settings.wallpaper_hint' => 'Upload a PNG, JPG, WEBP or GIF image up to 25 MB.',
     'settings.remove_wallpaper' => 'Remove wallpaper',
     'settings.animations' => 'Interface animations',
     'settings.prefs_label' => 'Preferences',
