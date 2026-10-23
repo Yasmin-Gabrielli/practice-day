@@ -15,7 +15,7 @@ use App\Services\ScannerService;
 final class ScannerController extends Controller
 {
     public function __construct(private readonly array $config) {}
-    public function index(): void { $this->auth(); $service = $this->service(); $this->view('scanner/index', ['title' => 'Câmera | PracticeDay', 'csrfToken' => Csrf::token(), 'userName' => $_SESSION['user_name'] ?? '', 'userAvatar' => $_SESSION['user_avatar'] ?? null, 'activePage' => 'scanner', 'scans' => $service->list($this->user()), 'disciplines' => $service->disciplines($this->user()), 'ocrAvailable' => $service->ocrAvailable(), 'feedback' => Flash::get('scanner')]); }
+    public function index(): void { $this->auth(); $service = $this->service(); $this->view('scanner/index', ['title' => 'Câmera | PracticeDay', 'csrfToken' => Csrf::token(), 'userName' => $_SESSION['user_name'] ?? '', 'userAvatar' => $_SESSION['user_avatar'] ?? null, 'activePage' => 'scanner', 'scans' => $service->list($this->user()), 'disciplines' => $service->disciplines($this->user()), 'feedback' => Flash::get('scanner')]); }
     public function create(): never { $this->auth(); try { Csrf::validate($_POST); $this->service()->create($this->user(), $_POST, $_FILES['paginas'] ?? []); Flash::set('scanner', ['success' => 'Digitalização salva. As imagens foram capturadas.']); } catch (ValidationException $e) { Flash::set('scanner', ['errors' => $e->errors()]); } catch (\Throwable $e) { Flash::set('scanner', ['errors' => ['geral' => $e->getMessage()]]); } $this->redirect('/scanner'); }
     public function delete(string $id): void
     {

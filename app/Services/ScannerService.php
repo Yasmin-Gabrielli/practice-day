@@ -66,23 +66,6 @@ final class ScannerService extends Service
         }
     }
 
-    /** @param list<array{path: string, page: string}> $pages */
-    private function extractText(array $pages, string $language): void
-    {
-        if (!TesseractOcr::available()) return;
-
-        foreach ($pages as $page) {
-            try {
-                $text = TesseractOcr::recognize($page['path'], $language);
-                if ($text !== null) {
-                    $this->scans->saveOcrText($page['page'], $text);
-                }
-            } catch (\Throwable $e) {
-                // OCR é opcional: falha no reconhecimento não invalida a digitalização.
-            }
-        }
-    }
-
     public function delete(string $userId, string $scanId): void
     {
         $scan = $this->scans->findForUser($scanId, $userId);
@@ -102,8 +85,6 @@ final class ScannerService extends Service
             @rmdir($base);
         }
     }
-
-    public function ocrAvailable(): bool { return TesseractOcr::available(); }
 
     public function page(string $userId, string $id): array
     {
