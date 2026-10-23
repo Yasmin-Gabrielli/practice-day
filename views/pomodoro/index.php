@@ -5,38 +5,16 @@ require dirname(__DIR__) . '/layouts/header.php';
 $wallpaperUrl = trim((string) (UserTheme::settings()['papel_parede'] ?? ''));
 ?>
 <style>
-.pomodoro-timer-card {
-    background-color: transparent !important;
-    position: relative;
-    overflow: hidden;
-}
-.pomodoro-timer-card::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: rgba(255,255,255,0.35);
-    z-index: 0;
-    pointer-events: none;
-}
-[data-bs-theme="dark"] .pomodoro-timer-card::before {
-    background: rgba(0,0,0,0.4);
-}
-.pomodoro-timer-card > * {
-    position: relative;
-    z-index: 1;
-}
-.app-body:not(.app-has-wallpaper) .pomodoro-timer-card {
-    background-color: var(--bs-card-bg) !important;
-}
-.app-body:not(.app-has-wallpaper) .pomodoro-timer-card::before {
-    display: none;
+.pomodoro-page .page-content {
+    min-height: 70vh;
+    border-radius: 1rem;
 }
 </style>
 <div class="app-shell">
     <?php require dirname(__DIR__) . '/layouts/sidebar.php'; ?>
     <div class="app-content">
         <?php require dirname(__DIR__) . '/layouts/navbar.php'; ?>
-        <main class="page-content">
+        <main class="page-content" style="background-image: <?= $wallpaperUrl !== '' ? 'url(' . htmlspecialchars($wallpaperUrl, ENT_QUOTES, 'UTF-8') . ')' : 'none' ?>; background-size: cover; background-position: center; background-repeat: no-repeat; background-attachment: fixed;">
             <section class="page-heading">
                 <div>
                     <p class="eyebrow">Produtividade</p>
@@ -47,7 +25,7 @@ $wallpaperUrl = trim((string) (UserTheme::settings()['papel_parede'] ?? ''));
 
             <div class="row justify-content-center mt-5">
                 <div class="col-md-6 col-lg-5">
-                    <div class="card text-center shadow-sm border-0 pomodoro-timer-card" style="background-image: <?= $wallpaperUrl !== '' ? 'url(' . htmlspecialchars($wallpaperUrl, ENT_QUOTES, 'UTF-8') . ')' : 'var(--app-wallpaper, none)' ?>; background-size: cover; background-position: center; background-repeat: no-repeat;">
+                    <div class="card text-center shadow-sm border-0 pomodoro-timer-card">
                         <div class="card-body p-5">
                             <div class="mb-4">
                                 <label for="disciplina_id" class="form-label text-muted">Disciplina (Opcional)</label>
