@@ -32,18 +32,31 @@ $widgetAttributes = static function (string $key) use ($widgets): string {
 };
 require dirname(__DIR__) . '/layouts/header.php';
 ?>
+<style>
+.dashboard-heading-card {
+    background: rgba(255,255,255,0.72) !important;
+    backdrop-filter: blur(8px);
+}
+[data-bs-theme="dark"] .dashboard-heading-card {
+    background: rgba(30,30,40,0.65) !important;
+}
+</style>
 <div class="app-shell">
     <?php require dirname(__DIR__) . '/layouts/sidebar.php'; ?>
     <div class="app-content">
         <?php require dirname(__DIR__) . '/layouts/navbar.php'; ?>
         <main class="page-content dashboard-page" style="background-image: <?= $wallpaperUrl !== '' ? 'url(' . htmlspecialchars($wallpaperUrl, ENT_QUOTES, 'UTF-8') . ')' : 'none' ?>; background-size: 100% 100%; background-position: center; background-repeat: no-repeat;">
-            <section class="page-heading">
-                <div>
-                    <p class="eyebrow"><?= htmlspecialchars(Lang::get('dashboard.eyebrow'), ENT_QUOTES, 'UTF-8') ?></p>
+            <div class="card border-0 shadow-sm mb-4 dashboard-heading-card">
+                <div class="card-body">
+                    <section class="page-heading mb-0">
+                        <div>
+                            <p class="eyebrow"><?= htmlspecialchars(Lang::get('dashboard.eyebrow'), ENT_QUOTES, 'UTF-8') ?></p>
                     <h1><?= htmlspecialchars((int) date('H') < 12 ? Lang::get('dashboard.greeting_morning') : ((int) date('H') < 18 ? Lang::get('dashboard.greeting_afternoon') : Lang::get('dashboard.greeting_evening')), ENT_QUOTES, 'UTF-8') ?>, <?= htmlspecialchars((string) $userName, ENT_QUOTES, 'UTF-8') ?>.</h1>
                     <p><?= htmlspecialchars(Lang::get('dashboard.subtitle'), ENT_QUOTES, 'UTF-8') ?></p>
                 </div>
             </section>
+                </div>
+            </div>
 
             <?php if ($visible('resumo')): ?>
                 <section class="summary-grid dashboard-widget" <?= $widgetAttributes('resumo') ?> aria-label="<?= htmlspecialchars(Lang::get('dashboard.summary_aria'), ENT_QUOTES, 'UTF-8') ?>">
