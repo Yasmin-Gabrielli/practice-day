@@ -124,7 +124,8 @@ require dirname(__DIR__) . '/layouts/header.php';
                             <?php if ($wallpaperUrl !== ''): ?>
                                 <img id="wallpaper-preview" class="settings-wallpaper-preview mb-2" src="<?= htmlspecialchars($wallpaperUrl, ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars(Lang::get('settings.wallpaper_preview'), ENT_QUOTES, 'UTF-8') ?>">
                             <?php endif; ?>
-                            <input type="file" class="form-control" id="papel_parede" name="papel_parede_arquivo" accept="image/png,image/jpeg,image/webp" data-wallpaper-file>
+                            <input type="file" class="form-control" id="papel_parede" name="papel_parede_arquivo" accept="image/png,image/jpeg,image/webp,image/gif" data-wallpaper-file>
+<div class="form-text">O wallpaper é aplicado como fundo do cronômetro Pomodoro. GIFs animados são aceitos.</div>
                             <div class="form-text"><?= htmlspecialchars(Lang::get('settings.wallpaper_hint'), ENT_QUOTES, 'UTF-8') ?></div>
                             <?php if ($wallpaperUrl !== ''): ?>
                                 <div class="form-check mt-2">

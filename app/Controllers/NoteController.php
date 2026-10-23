@@ -30,6 +30,20 @@ final class NoteController extends Controller
         $this->form($this->service()->find($this->user(), $id));
     }
 
+    public function viewNote(string $id): void
+    {
+        $this->auth();
+        header('Content-Type: application/json; charset=utf-8');
+        try {
+            $note = $this->service()->find($this->user(), $id);
+            echo json_encode(['success' => true, 'note' => $note], JSON_UNESCAPED_UNICODE);
+        } catch (\Throwable $e) {
+            http_response_code(404);
+            echo json_encode(['success' => false, 'message' => $e->getMessage()], JSON_UNESCAPED_UNICODE);
+        }
+        exit;
+    }
+
     public function create(): never
     {
         $this->auth();

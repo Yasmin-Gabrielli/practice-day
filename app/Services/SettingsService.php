@@ -21,6 +21,7 @@ final class SettingsService extends Service
         'jpeg' => ['image/jpeg'],
         'png' => ['image/png'],
         'webp' => ['image/webp'],
+        'gif' => ['image/gif'],
     ];
 
     private UserRepository $users;

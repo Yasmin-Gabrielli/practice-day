@@ -119,6 +119,17 @@
       const body = new URLSearchParams({_csrf_token: cfg.csrfToken, numero_pagina: String(pageNum), titulo: title});
       await fetch(cfg.libraryApi.marcadores, {method:'POST', credentials:'same-origin', headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'}, body});
     });
+
+    document.addEventListener('keydown', (e) => {
+      if (!pdfDoc) return;
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        queuePage(pageNum - 1);
+      } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        queuePage(pageNum + 1);
+      }
+    });
     setInterval(() => postReading({tempo: 15}).catch(() => {}), 15000);
     window.addEventListener('beforeunload', () => postReading({tempo: Math.min(120, Math.round((Date.now() - sessionStart) / 1000))}).catch(() => {}));
   }

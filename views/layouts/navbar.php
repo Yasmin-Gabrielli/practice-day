@@ -14,11 +14,11 @@ $pendingCount  = (int) ($_SESSION['notification_pending_count'] ?? 0);
         <i class="bi bi-list"></i>
     </button>
     <a class="mobile-brand d-lg-none" href="<?= Url::to('/') ?>"><span class="brand-mark"><i class="bi bi-journal-check"></i></span><span>PracticeDay</span></a>
-    <div class="global-search d-none d-md-flex" role="search">
+    <form class="global-search d-none d-md-flex" role="search" method="get" action="<?= Url::to('/busca') ?>">
         <i class="bi bi-search"></i>
-        <input type="search" aria-label="<?= htmlspecialchars(Lang::get('topbar.search_aria'), ENT_QUOTES, 'UTF-8') ?>" placeholder="<?= htmlspecialchars(Lang::get('topbar.search_placeholder'), ENT_QUOTES, 'UTF-8') ?>">
+        <input type="search" name="q" aria-label="<?= htmlspecialchars(Lang::get('topbar.search_aria'), ENT_QUOTES, 'UTF-8') ?>" placeholder="<?= htmlspecialchars(Lang::get('topbar.search_placeholder'), ENT_QUOTES, 'UTF-8') ?>" value="<?= htmlspecialchars((string) ($_GET['q'] ?? ''), ENT_QUOTES, 'UTF-8') ?>">
         <kbd>⌘ K</kbd>
-    </div>
+    </form>
     <div class="navbar-actions ms-auto">
         <button type="button" class="icon-button notif-bell-btn <?= $pendingCount > 0 ? 'has-pending' : '' ?>"
                 data-bs-toggle="modal" data-bs-target="#modal-notifications"

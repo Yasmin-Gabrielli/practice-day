@@ -157,6 +157,32 @@
   document.querySelector('[data-epub-prev]')?.addEventListener('click', () => rendition?.prev());
   document.querySelector('[data-epub-next]')?.addEventListener('click', () => rendition?.next());
 
+  document.addEventListener('keydown', (e) => {
+    if (!rendition) return;
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      rendition.prev();
+    } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      rendition.next();
+    }
+  });
+
+  // Clique em um marcador salto para a posição aproximada.
+  bookmarksList?.addEventListener('click', (e) => {
+    const t = e.target;
+    if (!(t instanceof HTMLElement)) return;
+    const li = t.closest('li');
+    if (!li) return;
+    const bm = state.marcadores.find((m) => (li.textContent || '').includes(m.titulo || ''));
+    if (!bm) return;
+    const pct = (Number(bm.numero_pagina) || 0) / 100;
+    try {
+      const cfi = book?.locations?.cfiFromPercentage?.(pct);
+      if (cfi) rendition?.display(cfi);
+    } catch (_) {}
+  });
+
   document.querySelector('[data-epub-bookmark]')?.addEventListener('click', async () => {
     const loc = rendition?.currentLocation();
     const cfi = loc?.start?.cfi || '';

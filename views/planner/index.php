@@ -563,26 +563,46 @@ function renderTaskModal(task) {
     }
     document.getElementById('view-task-checklist').innerHTML = checklistHtml;
 
-    // Anexos — URL correta: /planner/{tarefa}/anexos/{anexo}/excluir
+    // Anexos — imagens exibem preview; clique abre o arquivo. URL correta: /planner/{tarefa}/anexos/{anexo}/excluir
     let anexosHtml = '';
     if (task.anexos && task.anexos.length > 0) {
         task.anexos.forEach(anexo => {
             const anexoId = encodeURIComponent(anexo.id);
             const fileId = encodeURIComponent(anexo.arquivo_id || '');
             const fileName = escapeHtml(anexo.nome_original || 'Arquivo');
+            const isImage = /\\.(png|jpe?g|gif|webp)$/i.test(anexo.nome_original || '');
+            const serveUrl = '<?php echo Url::to('/arquivos/') ?>' + (anexo.arquivo_id || '') + '/servir';
+            const viewUrl = '<?php echo Url::to('/arquivos/visualizar/') ?>' + (anexo.arquivo_id || '');
 
-            anexosHtml += `
-                <div class="d-flex align-items-center justify-content-between mb-2 p-2 border rounded-3 js-anexo-row" data-anexo-id="${anexoId}">
-                    <div class="d-flex align-items-center gap-2 text-truncate">
-                        <i class="bi bi-file-earmark-text text-primary"></i>
-                        <a href="<?php echo Url::to('/arquivos/') ?>${fileId}/download" class="text-decoration-none text-truncate small" title="${fileName}">
-                            ${fileName}
-                        </a>
-                    </div>
-                    <button type="button" class="btn btn-sm text-danger p-0 js-anexo-delete" data-anexo-id="${anexoId}" title="Remover anexo">
-                        <i class="bi bi-trash"></i>
-                    </button>
-                </div>`;
+            if (isImage) {
+                anexosHtml += `
+                    <div class="d-flex align-items-center justify-content-between mb-2 p-2 border rounded-3 js-anexo-row" data-anexo-id="${anexoId}">
+                        <div class="d-flex align-items-center gap-2 text-truncate">
+                            <a href="${viewUrl}" target="_blank" rel="noopener" title="Abrir imagem">
+                                <img src="${serveUrl}" alt="${fileName}" style="width:48px;height:48px;object-fit:cover;border-radius:6px;border:1px solid #dee2e6;">
+                            </a>
+                            <a href="${viewUrl}" target="_blank" rel="noopener" class="text-decoration-none text-truncate small" title="${fileName}">
+                                ${fileName}
+                            </a>
+                        </div>
+                        <button type="button" class="btn btn-sm text-danger p-0 js-anexo-delete" data-anexo-id="${anexoId}" title="Remover anexo">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>`;
+            } else {
+                anexosHtml += `
+                    <div class="d-flex align-items-center justify-content-between mb-2 p-2 border rounded-3 js-anexo-row" data-anexo-id="${anexoId}">
+                        <div class="d-flex align-items-center gap-2 text-truncate">
+                            <i class="bi bi-file-earmark-text text-primary"></i>
+                            <a href="<?php echo Url::to('/arquivos/') ?>${fileId}/download" class="text-decoration-none text-truncate small" title="${fileName}">
+                                ${fileName}
+                            </a>
+                        </div>
+                        <button type="button" class="btn btn-sm text-danger p-0 js-anexo-delete" data-anexo-id="${anexoId}" title="Remover anexo">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>`;
+            }
         });
     } else {
         anexosHtml = '<span class="text-muted small">Nenhum anexo.</span>';

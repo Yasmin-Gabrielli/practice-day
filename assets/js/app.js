@@ -1,5 +1,17 @@
 'use strict';
 
+// ⌘K / Ctrl+K foca a barra de pesquisa global
+document.addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) {
+        const input = document.querySelector('.global-search input[type="search"]');
+        if (input) {
+            e.preventDefault();
+            input.focus();
+            input.select();
+        }
+    }
+});
+
 // Inicialização de modais que devem abrir no carregamento (ex: erros de validação)
 document.querySelectorAll('[data-open-on-load="true"]').forEach((element) => {
     bootstrap.Modal.getOrCreateInstance(element).show();

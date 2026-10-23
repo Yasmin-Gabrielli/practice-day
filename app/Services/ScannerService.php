@@ -66,8 +66,6 @@ final class ScannerService extends Service
             foreach ($stored as $page) if (is_file($page['path'])) unlink($page['path']);
             throw $e;
         }
-
-        $this->extractText($stored, $language);
     }
 
     /** @param list<array{path: string, page: string}> $pages */

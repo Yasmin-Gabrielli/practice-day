@@ -17,7 +17,7 @@ require dirname(__DIR__) . '/layouts/header.php';
 
             <div class="row justify-content-center mt-5">
                 <div class="col-md-6 col-lg-5">
-                    <div class="card text-center shadow-sm border-0">
+                    <div class="card text-center shadow-sm border-0 pomodoro-timer-card" style="background-image: var(--app-wallpaper, none); background-size: cover; background-position: center; background-repeat: no-repeat;">
                         <div class="card-body p-5">
                             <div class="mb-4">
                                 <label for="disciplina_id" class="form-label text-muted">Disciplina (Opcional)</label>

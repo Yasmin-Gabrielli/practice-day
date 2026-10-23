@@ -717,9 +717,9 @@ require dirname(__DIR__) . '/layouts/header.php';
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label fw-semibold" for="upload-disciplina">Disciplina <span class="text-danger">*</span></label>
-                    <select class="form-select" id="upload-disciplina" name="disciplina_id" required>
-                        <option value="">Selecione uma disciplina...</option>
+                    <label class="form-label fw-semibold" for="upload-disciplina">Disciplina</label>
+                    <select class="form-select" id="upload-disciplina" name="disciplina_id">
+                        <option value="">Sem disciplina</option>
                         <?php foreach ($disciplines as $d): ?>
                             <option value="<?= htmlspecialchars((string) $d['id'], ENT_QUOTES, 'UTF-8') ?>" <?= ($currentDiscipline === (string) $d['id'] || count($disciplines) === 1) ? 'selected' : '' ?>>
                                 <?= htmlspecialchars((string) $d['nome'], ENT_QUOTES, 'UTF-8') ?>
