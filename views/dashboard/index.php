@@ -1,7 +1,8 @@
 <?php
 use App\Helpers\Lang;
 use App\Helpers\Url;
-
+use App\Helpers\UserTheme;
+$wallpaperUrl = trim((string) (UserTheme::settings()['papel_parede'] ?? ''));
 $summary = $dashboard['summary'];
 $widgets = $dashboard['widgets'];
 $formatDate = static function (?string $date, bool $withTime = false): string {
@@ -35,7 +36,7 @@ require dirname(__DIR__) . '/layouts/header.php';
     <?php require dirname(__DIR__) . '/layouts/sidebar.php'; ?>
     <div class="app-content">
         <?php require dirname(__DIR__) . '/layouts/navbar.php'; ?>
-        <main class="page-content dashboard-page">
+        <main class="page-content dashboard-page" style="background-image: <?= $wallpaperUrl !== '' ? 'url(' . htmlspecialchars($wallpaperUrl, ENT_QUOTES, 'UTF-8') . ')' : 'none' ?>; background-size: 100% 100%; background-position: center; background-repeat: no-repeat;">
             <section class="page-heading">
                 <div>
                     <p class="eyebrow"><?= htmlspecialchars(Lang::get('dashboard.eyebrow'), ENT_QUOTES, 'UTF-8') ?></p>
