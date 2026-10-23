@@ -36,7 +36,6 @@ final class ScannerService extends Service
     {
         $title = trim((string) ($data['titulo'] ?? ''));
         $discipline = trim((string) ($data['disciplina_id'] ?? ''));
-        $language = in_array(($data['idioma_ocr'] ?? 'por'), ['por', 'eng', 'spa'], true) ? (string) $data['idioma_ocr'] : 'por';
         if ($title === '') throw new ValidationException(['titulo' => 'Informe um título para a digitalização.']);
         if ($discipline !== '' && $this->disciplines->findForUser($discipline, $userId) === null) throw new ValidationException(['disciplina_id' => 'Disciplina inválida.']);
         $files = $this->normaliseUploads($uploads);
@@ -58,7 +57,6 @@ final class ScannerService extends Service
                 $fileId = Uuid::v4();
                 $this->files->createFile(['id' => $fileId, 'p' => null, 'd' => $discipline === '' ? null : $discipline, 'u' => $userId, 'saved' => $pageId . '.' . $extension, 'original' => 'Digitalização ' . $title . ' - página ' . ($number + 1) . '.' . $extension, 'ext' => $extension, 'mime' => $mime, 'size' => filesize($target), 'path' => $relative]);
                 $this->scans->addPage($pageId, $scanId, $number + 1, $relative);
-                $this->scans->prepareOcr(Uuid::v4(), $pageId, $fileId, $language);
             }
             $this->scans->finishScan($scanId, count($files)); $this->scans->commit();
         } catch (\Throwable $e) {
