@@ -7,6 +7,16 @@ $currentFolderId = $currentFolder['id'] ?? null;
 $isTrash = ($currentFilter === 'lixeira');
 $isFavorites = ($currentFilter === 'favoritos');
 
+/* Na raiz (sem busca, filtro ou disciplina) mostramos apenas pastas:
+   os arquivos só aparecem quando o usuário entra em uma pasta. */
+$isPlainRoot = $currentFolderId === null
+    && !$isTrash
+    && !$isFavorites
+    && $currentFilter === 'todos'
+    && trim((string) ($currentSearch ?? '')) === ''
+    && empty($currentDiscipline);
+$hideRootFiles = $isPlainRoot && $files !== [];
+
 // Helper para formatar tamanho em bytes
 $formatBytes = static function (int $bytes): string {
     if ($bytes < 1024) return $bytes . ' B';
@@ -299,8 +309,22 @@ require dirname(__DIR__) . '/layouts/header.php';
                 <p>Nenhum arquivo ou pasta corresponde ao termo pesquisado.</p>
             </div>
 
+            <?php if ($hideRootFiles): ?>
+                <!-- Na raiz os arquivos ficam ocultos: o usuário vê apenas as pastas -->
+                <div class="fm-root-files-bar">
+                    <button class="btn btn-sm btn-outline-secondary" type="button" id="fm-root-files-toggle">
+                        <i class="bi bi-folder2-open me-1"></i>Ver todos os arquivos (<?= count($files) ?>)
+                    </button>
+                    <span class="small text-muted">Seus arquivos ficam organizados dentro das pastas.</span>
+                </div>
+            <?php endif; ?>
+
             <!-- Listagem de Arquivos -->
-            <div data-file-container data-view="<?= htmlspecialchars($currentView, ENT_QUOTES, 'UTF-8') ?>">
+            <div data-file-container
+                 data-view="<?= htmlspecialchars($currentView, ENT_QUOTES, 'UTF-8') ?>"
+                 data-root-folders-only="<?= $hideRootFiles ? '1' : '0' ?>"
+                 data-files-count="<?= count($files) ?>"
+                 class="<?= $hideRootFiles ? 'd-none' : '' ?>">
                 <?php if ($files === []): ?>
                     <!-- Estados Vazios Específicos -->
                     <?php if ($isTrash): ?>
@@ -330,6 +354,15 @@ require dirname(__DIR__) . '/layouts/header.php';
                                     <i class="bi bi-cloud-arrow-up me-1"></i>Enviar arquivo
                                 </button>
                             </div>
+                        </section>
+                    <?php elseif ($isPlainRoot): ?>
+                        <section class="empty-module-state">
+                            <span><i class="bi bi-folder2-open text-warning"></i></span>
+                            <h2>Organize seus arquivos em pastas</h2>
+                            <p>Crie a sua primeira pasta para guardar materiais de estudo. Os arquivos aparecem quando você entra em uma pasta.</p>
+                            <button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#modal-new-folder">
+                                <i class="bi bi-folder-plus me-1"></i>Criar primeira pasta
+                            </button>
                         </section>
                     <?php else: ?>
                         <section class="empty-module-state">

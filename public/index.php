@@ -96,6 +96,7 @@ $router->post('/planner/{id}/checklist', static fn (string $id) => $plannerContr
 $router->post('/planner/{id}/checklist/{itemId}/toggle', static fn (string $id, string $itemId) => $plannerController->toggleChecklist($id, $itemId));
 $router->post('/planner/{id}/checklist/{itemId}/excluir', static fn (string $id, string $itemId) => $plannerController->deleteChecklist($id, $itemId));
 $router->post('/planner/{id}/anexar', static fn (string $id) => $plannerController->attachFile($id));
+$router->post('/planner/{id}/anexar-upload', static fn (string $id) => $plannerController->attachUpload($id));
 $router->post('/planner/{id}/anexos/{attachmentId}/excluir', static fn (string $id, string $attachmentId) => $plannerController->detachFile($id, $attachmentId));
 
 $router->get('/calendario', static fn () => $calendarController->index());
@@ -125,6 +126,7 @@ $router->post('/pomodoro', static fn () => $pomodoroController->save());
 $router->get('/estatisticas', static fn () => $statisticsController->index());
 
 $router->get('/notificacoes', static fn () => $notificationController->index());
+$router->get('/notificacoes/feed', static fn () => $notificationController->feed());
 $router->post('/notificacoes/visualizar', static fn () => $notificationController->markViewed());
 $router->post('/notificacoes/visualizar-todas', static fn () => $notificationController->markAllViewed());
 

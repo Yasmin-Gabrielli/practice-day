@@ -9,6 +9,7 @@ use App\Exceptions\NotFoundException;
 use App\Exceptions\ValidationException;
 use App\Helpers\Csrf;
 use App\Helpers\Flash;
+use App\Helpers\JsonResponse;
 use App\Middleware\AuthenticationMiddleware;
 use App\Services\PlannerService;
 
@@ -35,6 +36,37 @@ final class PlannerController extends Controller
     private function s(): PlannerService
     {
         return new PlannerService($this->config);
+    }
+
+    /** Detecta chamadas AJAX para responder JSON em vez de redirecionar. */
+    private function expectsJson(): bool
+    {
+        return strtolower((string) ($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '')) === 'xmlhttprequest'
+            || str_contains((string) ($_SERVER['HTTP_ACCEPT'] ?? ''), 'application/json');
+    }
+
+    /** Responde sucesso em JSON quando a requisição é AJAX; senão flash + redirect. */
+    private function ok(string $message, array $extra = []): never
+    {
+        if ($this->expectsJson()) {
+            JsonResponse::send(['success' => true, 'message' => $message] + $extra);
+        }
+
+        Flash::set('planner', ['success' => $message]);
+        $this->redirect('/planner');
+    }
+
+    /** Responde falha em JSON quando a requisição é AJAX; senão flash + redirect. */
+    private function fail(array $errors): never
+    {
+        $errors = $errors === [] ? ['geral' => 'Não foi possível concluir a operação.'] : $errors;
+
+        if ($this->expectsJson()) {
+            JsonResponse::send(['success' => false, 'errors' => $errors], 422);
+        }
+
+        Flash::set('planner', ['errors' => $errors]);
+        $this->redirect('/planner');
     }
 
     public function index(): void
@@ -115,13 +147,12 @@ final class PlannerController extends Controller
         try {
             Csrf::validate($_POST);
             $this->s()->updateStatus($this->u(), $id, (string) ($_POST['status'] ?? ''));
-            Flash::set('planner', ['success' => 'Status da tarefa atualizado.']);
+            $this->ok('Status da tarefa atualizado.', ['task' => $this->s()->find($this->u(), $id)]);
         } catch (ValidationException $e) {
-            Flash::set('planner', ['errors' => $e->errors()]);
+            $this->fail($e->errors());
         } catch (\Throwable $e) {
-            Flash::set('planner', ['errors' => ['geral' => $e->getMessage()]]);
+            $this->fail(['geral' => $e->getMessage()]);
         }
-        $this->redirect('/planner');
     }
 
     public function viewTask(string $id): void
@@ -144,10 +175,12 @@ final class PlannerController extends Controller
         try {
             Csrf::validate($_POST);
             $this->s()->addChecklistItem($this->u(), $id, (string) ($_POST['descricao'] ?? ''));
+            $this->ok('Item adicionado à checklist.', ['task' => $this->s()->find($this->u(), $id)]);
+        } catch (ValidationException $e) {
+            $this->fail($e->errors());
         } catch (\Throwable $e) {
-            Flash::set('planner', ['errors' => ['geral' => $e->getMessage()]]);
+            $this->fail(['geral' => $e->getMessage()]);
         }
-        $this->redirect('/planner');
     }
 
     public function toggleChecklist(string $id, string $itemId): never
@@ -157,10 +190,12 @@ final class PlannerController extends Controller
             Csrf::validate($_POST);
             $concluido = isset($_POST['concluido']) && $_POST['concluido'] === '1' ? 1 : 0;
             $this->s()->toggleChecklistItem($this->u(), $id, $itemId, $concluido);
+            $this->ok('Checklist atualizada.', ['task' => $this->s()->find($this->u(), $id)]);
+        } catch (ValidationException $e) {
+            $this->fail($e->errors());
         } catch (\Throwable $e) {
-            Flash::set('planner', ['errors' => ['geral' => $e->getMessage()]]);
+            $this->fail(['geral' => $e->getMessage()]);
         }
-        $this->redirect('/planner');
     }
 
     public function deleteChecklist(string $id, string $itemId): never
@@ -169,10 +204,12 @@ final class PlannerController extends Controller
         try {
             Csrf::validate($_POST);
             $this->s()->deleteChecklistItem($this->u(), $id, $itemId);
+            $this->ok('Item removido da checklist.', ['task' => $this->s()->find($this->u(), $id)]);
+        } catch (ValidationException $e) {
+            $this->fail($e->errors());
         } catch (\Throwable $e) {
-            Flash::set('planner', ['errors' => ['geral' => $e->getMessage()]]);
+            $this->fail(['geral' => $e->getMessage()]);
         }
-        $this->redirect('/planner');
     }
 
     public function attachFile(string $id): never
@@ -181,13 +218,30 @@ final class PlannerController extends Controller
         try {
             Csrf::validate($_POST);
             $this->s()->addAttachment($this->u(), $id, (string) ($_POST['arquivo_id'] ?? ''));
-            Flash::set('planner', ['success' => 'Arquivo anexado.']);
+            $this->ok('Arquivo anexado.', ['task' => $this->s()->find($this->u(), $id)]);
         } catch (ValidationException $e) {
-            Flash::set('planner', ['errors' => $e->errors()]);
+            $this->fail($e->errors());
         } catch (\Throwable $e) {
-            Flash::set('planner', ['errors' => ['geral' => $e->getMessage()]]);
+            $this->fail(['geral' => $e->getMessage()]);
         }
-        $this->redirect('/planner');
+    }
+
+    /**
+     * Upload direto de um arquivo a partir do modal da tarefa.
+     * O arquivo é salvo em "Meus Arquivos" e anexado automaticamente.
+     */
+    public function attachUpload(string $id): never
+    {
+        $this->auth();
+        try {
+            Csrf::validate($_POST);
+            $this->s()->attachUpload($this->u(), $id, $_FILES['arquivo'] ?? []);
+            $this->ok('Arquivo enviado e anexado à tarefa.', ['task' => $this->s()->find($this->u(), $id)]);
+        } catch (ValidationException $e) {
+            $this->fail($e->errors());
+        } catch (\Throwable $e) {
+            $this->fail(['geral' => $e->getMessage()]);
+        }
     }
 
     public function detachFile(string $id, string $attachmentId): never
@@ -196,10 +250,11 @@ final class PlannerController extends Controller
         try {
             Csrf::validate($_POST);
             $this->s()->removeAttachment($this->u(), $id, $attachmentId);
-            Flash::set('planner', ['success' => 'Anexo removido.']);
+            $this->ok('Anexo removido.', ['task' => $this->s()->find($this->u(), $id)]);
+        } catch (ValidationException $e) {
+            $this->fail($e->errors());
         } catch (\Throwable $e) {
-            Flash::set('planner', ['errors' => ['geral' => $e->getMessage()]]);
+            $this->fail(['geral' => $e->getMessage()]);
         }
-        $this->redirect('/planner');
     }
 }

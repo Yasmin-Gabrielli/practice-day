@@ -49,14 +49,6 @@
 
             <a class="sidebar-link<?php echo $isActive('estatisticas') ?>" href="<?php echo Url::to('/estatisticas') ?>"><i class="bi bi-bar-chart-line"></i><span><?= htmlspecialchars(Lang::get('nav.estatisticas'), ENT_QUOTES, 'UTF-8') ?></span></a>
 
-            <a class="sidebar-link<?php echo $isActive('notificacoes') ?>" href="<?php echo Url::to('/notificacoes') ?>">
-                <i class="bi bi-bell<?php echo isset($_SESSION['notification_pending_count']) && (int) $_SESSION['notification_pending_count'] > 0 ? '-fill text-primary' : '' ?>"></i>
-                <span><?= htmlspecialchars(Lang::get('nav.notificacoes'), ENT_QUOTES, 'UTF-8') ?></span>
-                <?php if (isset($_SESSION['notification_pending_count']) && (int) $_SESSION['notification_pending_count'] > 0): ?>
-                    <span class="ms-auto sidebar-notif-badge"><?= (int) $_SESSION['notification_pending_count'] <= 99 ? (int) $_SESSION['notification_pending_count'] : '99+' ?></span>
-                <?php endif; ?>
-            </a>
-
         </nav>
 
         <div class="sidebar-divider"></div>

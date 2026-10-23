@@ -142,6 +142,25 @@ final class PlannerService extends Service
         $this->repo->removeAttachment($taskId, $attachmentId);
     }
 
+    /**
+     * Envia um arquivo direto do modal da tarefa e o anexa automaticamente.
+     * O arquivo passa a existir em "Meus Arquivos" (raiz) e é anexado à tarefa.
+     */
+    public function attachUpload(string $userId, string $taskId, array $upload): string
+    {
+        $task = $this->find($userId, $taskId);
+
+        $disciplineId = !empty($task['disciplina_id']) ? (string) $task['disciplina_id'] : null;
+        if ($disciplineId !== null && ! $this->fileRepo->ownedDiscipline($disciplineId, $userId)) {
+            $disciplineId = null;
+        }
+
+        $fileId = (new FileService($this->config))->upload($userId, $upload, $disciplineId, null, []);
+        $this->repo->addAttachment($taskId, $fileId);
+
+        return $fileId;
+    }
+
     private function validate(array $data): void
     {
         $errors = [];

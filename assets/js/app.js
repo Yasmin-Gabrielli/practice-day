@@ -316,3 +316,266 @@ document.querySelectorAll('[data-icon-picker]').forEach((picker) => {
     }
     sync();
 });
+
+/* =========================================================
+   MODAL DE NOTIFICAÇÕES (sino do topo)
+   O feed é carregado via JSON quando o modal abre, evitando
+   consultas extras em toda página.
+   ========================================================= */
+(function () {
+    const modalEl = document.getElementById('modal-notifications');
+    if (!modalEl) return;
+
+    const bodyEl = document.getElementById('notif-modal-body');
+    const subtitleEl = document.getElementById('notif-modal-subtitle');
+    const markAllBtn = document.getElementById('notif-mark-all');
+
+    const feedUrl = modalEl.dataset.feedUrl;
+    const markUrl = modalEl.dataset.markUrl;
+    const markAllUrl = modalEl.dataset.markAllUrl;
+    const csrfToken = modalEl.dataset.csrfToken || '';
+
+    /* Base do app (quando hospedado em subdiretório). */
+    const footerLink = modalEl.querySelector('.modal-footer a');
+    const basePath = ((footerLink && footerLink.getAttribute('href')) || '/notificacoes').replace(/\/notificacoes$/, '');
+    const appUrl = (path) => basePath + path;
+
+    const GROUP_META = {
+        tarefas_vencidas: { label: 'Tarefas Vencidas', icon: 'bi-exclamation-circle-fill', color: 'danger' },
+        tarefas_proximas: { label: 'Vencimento Próximo', icon: 'bi-calendar-event-fill', color: 'warning' },
+        eventos: { label: 'Eventos Próximos', icon: 'bi-calendar3', color: 'primary' },
+        lembretes: { label: 'Lembretes', icon: 'bi-bell-fill', color: 'info' }
+    };
+
+    function fmtRelDate(raw) {
+        const ts = raw ? Date.parse(String(raw).replace(' ', 'T')) : NaN;
+        if (isNaN(ts)) return raw ? escapeHtml(String(raw)) : '—';
+
+        const now = Date.now();
+        const diff = Math.round((ts - now) / 1000);
+        const abs = Math.abs(diff);
+
+        if (abs < 60) return diff < 0 ? 'Agora mesmo' : 'Em instantes';
+        if (abs < 3600) { const m = Math.round(abs / 60); return diff < 0 ? 'Há ' + m + ' min' : 'Em ' + m + ' min'; }
+        if (abs < 86400) { const h = Math.round(abs / 3600); return diff < 0 ? 'Há ' + h + 'h' : 'Em ' + h + 'h'; }
+        if (abs < 86400 * 7) { const d = Math.round(abs / 86400); return diff < 0 ? 'Há ' + d + ' dias' : 'Em ' + d + ' dias'; }
+        return new Date(ts).toLocaleDateString();
+    }
+
+    function notifyPost(url, data) {
+        const body = new FormData();
+        body.append('_csrf_token', csrfToken);
+        Object.keys(data || {}).forEach((key) => body.append(key, data[key]));
+
+        return fetch(url, {
+            method: 'POST',
+            body: body,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        }).then(async (res) => {
+            const payload = await res.json().catch(() => null);
+            if (!res.ok || !payload || payload.success !== true) {
+                const errors = payload && payload.errors ? payload.errors : null;
+                throw new Error(errors ? Object.values(errors).join(' ') : 'Não foi possível concluir a ação.');
+            }
+            return payload;
+        });
+    }
+
+    function updateBell(count) {
+        const bell = document.querySelector('.notif-bell-btn');
+        if (!bell) return;
+        const icon = bell.querySelector('i');
+        let badge = bell.querySelector('.notif-badge');
+
+        if (count > 0) {
+            if (!badge) {
+                badge = document.createElement('span');
+                badge.className = 'notif-badge';
+                bell.appendChild(badge);
+            }
+            badge.textContent = count <= 99 ? String(count) : '99+';
+            bell.classList.add('has-pending');
+            if (icon) icon.className = 'bi bi-bell-fill';
+        } else {
+            if (badge) badge.remove();
+            bell.classList.remove('has-pending');
+            if (icon) icon.className = 'bi bi-bell';
+        }
+    }
+
+    function updateSubtitle(pendingCount) {
+        if (!subtitleEl) return;
+        subtitleEl.textContent = pendingCount > 0
+            ? (pendingCount === 1 ? '1 notificação pendente' : pendingCount + ' notificações pendentes')
+            : 'Tudo em dia!';
+    }
+
+    function cardHtml(item, meta) {
+        const isRead = !!item.read;
+        const key = escapeHtml(String(item.key || ''));
+        const url = appUrl(String(item.url || '/'));
+        const sub = escapeHtml(String(item.subtitle || ''));
+        const label = escapeHtml(String(item.label || ''));
+        const title = escapeHtml(String(item.title || 'Notificação'));
+
+        return '<div class="notif-card ' + (isRead ? 'notif-card--read' : 'notif-card--unread') + '" data-notif-key="' + key + '">' +
+            '<div class="notif-card-icon-wrap text-' + meta.color + ' bg-' + meta.color + ' bg-opacity-10">' +
+            '<i class="bi ' + escapeHtml(String(item.icon || meta.icon)) + '"></i></div>' +
+            '<div class="notif-card-body">' +
+            '<div class="notif-card-label">' + label + '</div>' +
+            '<div class="notif-card-title"><a href="' + escapeHtml(url) + '" class="notif-card-link">' + title + '</a>' +
+            (isRead ? '' : '<span class="notif-unread-dot" title="Não lida"></span>') + '</div>' +
+            (sub ? '<div class="notif-card-sub">' + sub + '</div>' : '') +
+            '<div class="notif-card-date"><i class="bi bi-clock me-1"></i>' + fmtRelDate(String(item.occurred_at || '')) + '</div>' +
+            '</div>' +
+            '<div class="notif-card-actions">' +
+            '<a href="' + escapeHtml(url) + '" class="btn btn-sm btn-outline-secondary notif-action-btn" title="Ver detalhes"><i class="bi bi-arrow-right"></i></a>' +
+            (isRead ? '' :
+                '<button type="button" class="btn btn-sm btn-outline-primary notif-action-btn js-notif-read" title="Marcar como lida"><i class="bi bi-check2"></i></button>') +
+            '</div></div>';
+    }
+
+    function render(feed) {
+        const groups = feed.groups || {};
+        const pendingCount = Number(feed.pending_count || 0);
+        let html = '';
+        let total = 0;
+
+        Object.keys(GROUP_META).forEach((key) => {
+            const items = groups[key] || [];
+            if (!items.length) return;
+            const meta = GROUP_META[key];
+            total += items.length;
+            html += '<div class="notif-group-section">' +
+                '<div class="notif-group-header">' +
+                '<span class="notif-group-icon text-' + meta.color + '"><i class="bi ' + meta.icon + '"></i></span>' +
+                '<h3 class="notif-group-title">' + meta.label + '</h3>' +
+                '<span class="notif-group-count badge bg-' + meta.color + ' bg-opacity-15 text-' + meta.color + '">' + items.length + '</span>' +
+                '</div><div class="notif-card-list">' +
+                items.map((item) => cardHtml(item, meta)).join('') +
+                '</div></div>';
+        });
+
+        if (total === 0) {
+            html = '<div class="notif-empty-state py-3">' +
+                '<div class="notif-empty-icon"><i class="bi bi-bell-slash"></i></div>' +
+                '<h3 class="fs-6 fw-bold mb-1">Sem notificações</h3>' +
+                '<p class="small text-muted mb-0">Nenhuma tarefa vencida, evento próximo ou lembrete agendado.</p>' +
+                '</div>';
+        }
+
+        if (bodyEl) bodyEl.innerHTML = html;
+        updateSubtitle(pendingCount);
+        if (markAllBtn) markAllBtn.classList.toggle('d-none', pendingCount <= 0);
+        updateBell(pendingCount);
+    }
+
+    function showLoading() {
+        if (!bodyEl) return;
+        bodyEl.innerHTML = '<div class="text-center text-muted small py-4">' +
+            '<span class="spinner-border spinner-border-sm me-2"></span>Carregando notificações...</div>';
+    }
+
+    function loadFeed() {
+        showLoading();
+        fetch(feedUrl, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then((res) => res.json())
+            .then((payload) => {
+                if (payload && payload.success) {
+                    render(payload);
+                } else {
+                    throw new Error('Não foi possível carregar as notificações.');
+                }
+            })
+            .catch(() => {
+                if (bodyEl) {
+                    bodyEl.innerHTML = '<div class="text-center text-muted small py-4">' +
+                        '<i class="bi bi-exclamation-circle me-1"></i>Não foi possível carregar as notificações.</div>';
+                }
+            });
+    }
+
+    modalEl.addEventListener('show.bs.modal', loadFeed);
+
+    if (markAllBtn) {
+        markAllBtn.addEventListener('click', () => {
+            markAllBtn.disabled = true;
+            notifyPost(markAllUrl, {})
+                .then((payload) => {
+                    updateBell(Number(payload.pending_count || 0));
+                    render({ groups: {}, pending_count: 0 });
+                })
+                .catch((err) => window.alert(err.message))
+                .finally(() => { markAllBtn.disabled = false; });
+        });
+    }
+
+    document.addEventListener('click', (e) => {
+        const readBtn = e.target.closest('.js-notif-read');
+        if (!readBtn || !modalEl.contains(readBtn)) return;
+
+        const card = readBtn.closest('.notif-card');
+        if (!card) return;
+        const key = card.dataset.notifKey || '';
+        if (!key) return;
+
+        readBtn.disabled = true;
+        notifyPost(markUrl, { notification_key: key, redirect: '/notificacoes' })
+            .then((payload) => {
+                card.classList.remove('notif-card--unread');
+                card.classList.add('notif-card--read');
+                const dot = card.querySelector('.notif-unread-dot');
+                if (dot) dot.remove();
+                readBtn.remove();
+
+                const pending = Number(payload.pending_count || 0);
+                updateBell(pending);
+                updateSubtitle(pending);
+                if (markAllBtn) markAllBtn.classList.toggle('d-none', pending <= 0);
+
+                if (pending === 0 && card.closest('.notif-group-section')) {
+                    // Última da seção: recarrega para exibir o estado vazio.
+                    loadFeed();
+                }
+            })
+            .catch((err) => { readBtn.disabled = false; window.alert(err.message); });
+    });
+})();
+
+/* =========================================================
+   ARQUIVOS — na raiz exibe apenas pastas; os arquivos só
+   aparecem dentro de uma pasta (ou quando o usuário busca).
+   ========================================================= */
+(function () {
+    const container = document.querySelector('[data-file-container]');
+    if (!container || container.dataset.rootFoldersOnly !== '1') return;
+
+    const toggleBtn = document.getElementById('fm-root-files-toggle');
+    const searchInput = document.getElementById('fm-live-search');
+    const count = Number(container.dataset.filesCount || 0);
+    let expanded = false;
+
+    function sync() {
+        const hasQuery = !!(searchInput && searchInput.value.trim() !== '');
+        const show = expanded || hasQuery;
+        container.classList.toggle('d-none', !show);
+        if (toggleBtn) {
+            toggleBtn.innerHTML = show
+                ? '<i class="bi bi-eye-slash me-1"></i>Ocultar arquivos'
+                : '<i class="bi bi-folder2-open me-1"></i>Ver todos os arquivos (' + count + ')';
+        }
+    }
+
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', () => {
+            expanded = !expanded;
+            sync();
+        });
+    }
+
+    if (searchInput) {
+        searchInput.addEventListener('input', sync);
+    }
+
+    sync();
+})();

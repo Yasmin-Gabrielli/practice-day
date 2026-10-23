@@ -46,9 +46,31 @@ final class NotificationController extends Controller
         ]);
     }
 
+    /**
+     * Feed em JSON usado pelo modal de notificações do sino (topo).
+     */
+    public function feed(): never
+    {
+        $userId = $this->auth();
+
+        try {
+            $feed = (new NotificationService($this->config))->feedForUser($userId);
+            $_SESSION['notification_pending_count'] = $feed['pending_count'];
+
+            $this->jsonOk([
+                'pending_count' => $feed['pending_count'],
+                'groups' => $feed['groups'],
+            ]);
+        } catch (\Throwable $exception) {
+            $this->jsonFail(['geral' => $exception->getMessage()]);
+        }
+    }
+
     public function markViewed(): never
     {
         $userId = $this->auth();
+        $ajax = $this->expectsJson();
+
         try {
             Csrf::validate($_POST);
             $key = trim((string) ($_POST['notification_key'] ?? ''));
@@ -58,8 +80,17 @@ final class NotificationController extends Controller
 
             (new NotificationService($this->config))->markAsViewed($userId, $key);
             $_SESSION['notification_pending_count'] = (new NotificationService($this->config))->pendingCount($userId);
+
+            if ($ajax) {
+                $this->jsonOk(['pending_count' => (int) $_SESSION['notification_pending_count']]);
+            }
+
             Flash::set('notificacoes', ['success' => 'Notificação marcada como visualizada.']);
         } catch (\Throwable $exception) {
+            if ($ajax) {
+                $this->jsonFail(['geral' => $exception->getMessage()]);
+            }
+
             Flash::set('notificacoes', ['errors' => ['geral' => $exception->getMessage()]]);
         }
 
@@ -74,15 +105,48 @@ final class NotificationController extends Controller
     public function markAllViewed(): never
     {
         $userId = $this->auth();
+        $ajax = $this->expectsJson();
+
         try {
             Csrf::validate($_POST);
             (new NotificationService($this->config))->markAllAsViewed($userId);
             $_SESSION['notification_pending_count'] = 0;
+
+            if ($ajax) {
+                $this->jsonOk(['pending_count' => 0]);
+            }
+
             Flash::set('notificacoes', ['success' => 'Todas as notificações foram marcadas como visualizadas.']);
         } catch (\Throwable $exception) {
+            if ($ajax) {
+                $this->jsonFail(['geral' => $exception->getMessage()]);
+            }
+
             Flash::set('notificacoes', ['errors' => ['geral' => $exception->getMessage()]]);
         }
 
         $this->redirect('/notificacoes');
+    }
+
+    private function expectsJson(): bool
+    {
+        return strtolower((string) ($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '')) === 'xmlhttprequest';
+    }
+
+    /** @param array<string, mixed> $extra */
+    private function jsonOk(array $extra = []): never
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode(['success' => true] + $extra);
+        exit;
+    }
+
+    /** @param array<string, string> $errors */
+    private function jsonFail(array $errors): never
+    {
+        http_response_code(422);
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode(['success' => false, 'errors' => $errors]);
+        exit;
     }
 }

@@ -83,11 +83,13 @@ final class FileService extends Service
     public function upload(
         string $userId,
         array $upload,
-        string $disciplineId,
+        ?string $disciplineId,
         ?string $folderId,
         array $tags
-    ): void {
-        if ($disciplineId === '' || !$this->repo->ownedDiscipline($disciplineId, $userId)) {
+    ): string {
+        $disciplineId = ($disciplineId !== null && $disciplineId !== '') ? $disciplineId : null;
+
+        if ($disciplineId !== null && !$this->repo->ownedDiscipline($disciplineId, $userId)) {
             throw new ValidationException(['disciplina_id' => 'Selecione uma disciplina válida.']);
         }
 
@@ -225,6 +227,8 @@ final class FileService extends Service
             }
             throw $e;
         }
+
+        return $fileId;
     }
 
     /**

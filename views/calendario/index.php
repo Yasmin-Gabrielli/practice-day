@@ -216,7 +216,7 @@ require dirname(__DIR__) . '/layouts/header.php';
 
 <!-- FullCalendar -->
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/locales-all.global.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.11/locales-all.global.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const baseUrl = <?= json_encode(Url::to('/calendario/'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
@@ -358,6 +358,23 @@ document.addEventListener('DOMContentLoaded', function() {
 .fc .fc-button-primary.fc-button-active {
     background-color: #1e4fa9;
     border-color: #1e4fa9;
+}
+/* Remove o sublinhado que o Bootstrap aplica em qualquer <a> dentro do
+   calendário (números dos dias, "+N mais", visões de lista, cabeçalhos). */
+.fc a {
+    text-decoration: none !important;
+}
+.fc a:hover {
+    text-decoration: none !important;
+}
+/* Números de dia, cabeçalhos e rótulos de lista não são links de verdade:
+   usam a cor do texto, não o azul padrão de hyperlink do Bootstrap. */
+.fc .fc-daygrid-day-number,
+.fc .fc-list-day-text,
+.fc .fc-list-day-side-text,
+.fc .fc-col-header-cell-cushion,
+.fc .fc-daygrid-week-number {
+    color: inherit;
 }
 </style>
 

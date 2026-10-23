@@ -76,10 +76,16 @@ final class FileController extends Controller
 
         try {
             Csrf::validate($_POST);
+
+            $disciplineId = (string) ($_POST['disciplina_id'] ?? '');
+            if ($disciplineId === '') {
+                throw new ValidationException(['disciplina_id' => 'Selecione uma disciplina válida.']);
+            }
+
             $this->s()->upload(
                 $this->u(),
                 $_FILES['arquivo'] ?? [],
-                (string) ($_POST['disciplina_id'] ?? ''),
+                $disciplineId,
                 !empty($_POST['pasta_id']) ? (string) $_POST['pasta_id'] : null,
                 (array) ($_POST['tags'] ?? [])
             );
