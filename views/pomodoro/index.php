@@ -14,7 +14,7 @@ $wallpaperUrl = trim((string) (UserTheme::settings()['papel_parede'] ?? ''));
     <?php require dirname(__DIR__) . '/layouts/sidebar.php'; ?>
     <div class="app-content">
         <?php require dirname(__DIR__) . '/layouts/navbar.php'; ?>
-        <main class="page-content" style="background-image: <?= $wallpaperUrl !== '' ? 'url(' . htmlspecialchars($wallpaperUrl, ENT_QUOTES, 'UTF-8') . ')' : 'none' ?>; background-size: contain; background-position: center; background-repeat: no-repeat; background-color: var(--bs-body-bg);">
+        <main class="page-content" style="background-image: <?= $wallpaperUrl !== '' ? 'url(' . htmlspecialchars($wallpaperUrl, ENT_QUOTES, 'UTF-8') . ')' : 'none' ?>; background-size: 100% 100%; background-position: center; background-repeat: no-repeat;">
             <section class="page-heading">
                 <div>
                     <p class="eyebrow">Produtividade</p>
