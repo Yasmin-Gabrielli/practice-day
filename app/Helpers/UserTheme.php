@@ -78,6 +78,9 @@ final class UserTheme
             $styles[] = '--app-wallpaper:url("' . $safeUrl . '")';
         }
 
+        // Cor de texto com contraste automatico para a cor primaria
+        $styles[] = '--bs-primary-text:' . self::primaryTextColor($primary);
+
         return implode(';', $styles);
     }
 
@@ -93,6 +96,35 @@ final class UserTheme
     private static function sanitizeHex(string $value, string $fallback): string
     {
         return preg_match('/^#[0-9a-fA-F]{6}$/', $value) ? $value : $fallback;
+    }
+
+    /**
+     * Calcula a cor de texto (preto ou branco) com melhor contraste
+     * para a cor primaria informada, com base na luminancia relativa.
+     */
+    public static function primaryTextColor(string $hex): string
+    {
+        $hex = ltrim($hex, '#');
+        if (strlen($hex) !== 6) {
+            return '#ffffff';
+        }
+        $r = hexdec(substr($hex, 0, 2)) / 255;
+        $g = hexdec(substr($hex, 2, 2)) / 255;
+        $b = hexdec(substr($hex, 4, 2)) / 255;
+        // Luminancia relativa (sRGB)
+        $lum = 0.2126 * $r + 0.7152 * $g + 0.0722 * $b;
+        return $lum > 0.55 ? '#111827' : '#ffffff';
+    }
+
+    /** @return array{0: int, 1: int, 2: int} */
+    public static function hexToRgbArray(string $hex): array
+    {
+        $hex = ltrim($hex, '#');
+        return [
+            hexdec(substr($hex, 0, 2)),
+            hexdec(substr($hex, 2, 2)),
+            hexdec(substr($hex, 4, 2)),
+        ];
     }
 
     /** @return array{0: int, 1: int, 2: int} */

@@ -243,8 +243,8 @@
 
 [data-bs-theme="dark"] .sidebar-link:hover,
 [data-bs-theme="dark"] .sidebar-link.active {
-   color: #60a5fa;
-   background: rgba(96, 165, 250, 0.12);
+   color: var(--bs-primary);
+   background: color-mix(in srgb, var(--app-accent-secondary) 20%, #1e2430);
 }
 
 [data-bs-theme="dark"] .sidebar-divider {
@@ -289,7 +289,7 @@
 }
 
 [data-bs-theme="dark"] .global-search:focus-within {
-   border-color: #3b82f6;
+   border-color: var(--bs-primary);
    background: #1e2430;
 }
 
@@ -374,6 +374,10 @@
    --bs-btn-hover-border-color: var(--bs-primary);
    --bs-btn-active-bg: var(--bs-primary);
    --bs-btn-active-border-color: var(--bs-primary);
+   --bs-btn-color: var(--bs-primary-text, #ffffff);
+   --bs-btn-hover-color: var(--bs-primary-text, #ffffff);
+   --bs-btn-active-color: var(--bs-primary-text, #ffffff);
+   color: var(--bs-primary-text, #ffffff);
 }
 
 .settings-page .settings-section-label {

@@ -15,12 +15,14 @@ use App\Helpers\UserTheme;
     $primary = preg_match('/^#[0-9a-fA-F]{6}$/', (string) ($settings['cor_primaria'] ?? '')) ? (string) $settings['cor_primaria'] : '#2563eb';
     $secondary = preg_match('/^#[0-9a-fA-F]{6}$/', (string) ($settings['cor_secundaria'] ?? '')) ? (string) $settings['cor_secundaria'] : '#ffffff';
     $primaryRgb = implode(', ', [hexdec(substr($primary, 1, 2)), hexdec(substr($primary, 3, 2)), hexdec(substr($primary, 5, 2))]);
+    $primaryText = \App\Helpers\UserTheme::primaryTextColor($primary);
     ?>
     <style>
         :root, [data-bs-theme="dark"], [data-bs-theme="light"] {
             --bs-primary: <?= $primary ?> !important;
             --bs-primary-rgb: <?= $primaryRgb ?> !important;
             --app-accent-secondary: <?= $secondary ?> !important;
+            --bs-primary-text: <?= $primaryText ?> !important;
         }
     </style>
 </head>
