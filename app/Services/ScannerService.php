@@ -55,7 +55,7 @@ final class ScannerService extends Service
                 if (!move_uploaded_file($file['tmp_name'], $target)) throw new \RuntimeException('Não foi possível salvar uma página capturada.');
                 $stored[] = ['path' => $target, 'page' => $pageId];
                 $fileId = Uuid::v4();
-                $this->files->createFile(['id' => $fileId, 'p' => null, 'd' => $discipline === '' ? null : $discipline, 'u' => $userId, 'saved' => $pageId . '.' . $extension, 'original' => 'Digitalização ' . $title . ' - página ' . ($number + 1) . '.' . $extension, 'ext' => $extension, 'mime' => $mime, 'size' => filesize($target), 'path' => $relative]);
+                $this->files->createFile(['id' => $fileId, 'p' => null, 'd' => $discipline === '' ? null : $discipline, 'u' => $userId, 'saved' => $pageId . '.' . $extension, 'original' => 'Digitalização ' . $title . ' - página ' . ($number + 1) . '.' . $extension, 'ext' => $extension, 'mime' => $mime, 'size' => filesize($target), 'path' => $relative, 'origem' => 'camera']);
                 $this->scans->addPage($pageId, $scanId, $number + 1, $relative);
             }
             $this->scans->finishScan($scanId, count($files)); $this->scans->commit();

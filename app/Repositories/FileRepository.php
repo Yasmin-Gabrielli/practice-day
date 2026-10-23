@@ -17,7 +17,8 @@ final class FileRepository extends Repository
         ?string $folderId = null,
         bool $onlyFavorites = false,
         ?string $disciplineId = null,
-        ?string $search = null
+        ?string $search = null,
+        ?string $origem = null
     ): array {
         $sql = 'SELECT 
                     a.*,
@@ -50,6 +51,11 @@ final class FileRepository extends Repository
         if ($disciplineId !== null && $disciplineId !== '') {
             $sql .= ' AND a.disciplina_id = :d';
             $params['d'] = $disciplineId;
+        }
+
+        if ($origem !== null && $origem !== '') {
+            $sql .= ' AND a.origem = :o';
+            $params['o'] = $origem;
         }
 
         if ($search !== null && trim($search) !== '') {
@@ -303,8 +309,8 @@ final class FileRepository extends Repository
     public function createFile(array $d): void
     {
         $stmt = $this->db->prepare(
-            'INSERT INTO arquivos (id, pasta_id, disciplina_id, usuario_id, nome_arquivo, nome_original, extensao, tipo_mime, tamanho_bytes, caminho_armazenamento) 
-             VALUES (:id, :p, :d, :u, :saved, :original, :ext, :mime, :size, :path)'
+            'INSERT INTO arquivos (id, pasta_id, disciplina_id, usuario_id, nome_arquivo, nome_original, extensao, tipo_mime, tamanho_bytes, caminho_armazenamento, origem) 
+             VALUES (:id, :p, :d, :u, :saved, :original, :ext, :mime, :size, :path, :origem)'
         );
         $stmt->execute($d);
     }
@@ -492,6 +498,7 @@ final class FileRepository extends Repository
                 COUNT(CASE WHEN a.excluido = FALSE THEN 1 END) AS total_arquivos,
                 COALESCE(SUM(CASE WHEN a.excluido = FALSE THEN a.tamanho_bytes ELSE 0 END), 0) AS total_bytes,
                 COUNT(CASE WHEN a.excluido = FALSE AND (a.favorito = TRUE OR af.arquivo_id IS NOT NULL) THEN 1 END) AS total_favoritos,
+                COUNT(CASE WHEN a.excluido = FALSE AND a.origem = \'camera\' THEN 1 END) AS total_imagens,
                 COUNT(CASE WHEN a.excluido = TRUE THEN 1 END) AS total_lixeira
              FROM arquivos a
              LEFT JOIN arquivos_favoritos af ON af.arquivo_id = a.id AND af.usuario_id = a.usuario_id
@@ -504,6 +511,7 @@ final class FileRepository extends Repository
             'total_arquivos' => (int) ($row['total_arquivos'] ?? 0),
             'total_bytes' => (int) ($row['total_bytes'] ?? 0),
             'total_favoritos' => (int) ($row['total_favoritos'] ?? 0),
+            'total_imagens' => (int) ($row['total_imagens'] ?? 0),
             'total_lixeira' => (int) ($row['total_lixeira'] ?? 0),
         ];
     }

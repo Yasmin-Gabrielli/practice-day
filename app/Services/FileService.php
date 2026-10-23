@@ -42,6 +42,7 @@ final class FileService extends Service
 
         $isTrash = ($filter === 'lixeira');
         $isFavorites = ($filter === 'favoritos');
+        $isImages = ($filter === 'imagens');
 
         if ($isTrash) {
             $files = $this->repo->trashFiles($userId, $search);
@@ -52,9 +53,10 @@ final class FileService extends Service
                 $isFavorites ? null : $folderId,
                 $isFavorites,
                 $disciplineId,
-                $search
+                $search,
+                $isImages ? 'camera' : null
             );
-            $folders = $this->repo->folders(
+            $folders = $isImages ? [] : $this->repo->folders(
                 $userId,
                 $isFavorites ? null : ($folderId ?: 'root'),
                 $disciplineId
@@ -207,6 +209,7 @@ final class FileService extends Service
                 'mime' => $cleanMime,
                 'size' => $size,
                 'path' => $storageRelative,
+                'origem' => 'upload',
             ]);
 
             if ($validTags !== []) {

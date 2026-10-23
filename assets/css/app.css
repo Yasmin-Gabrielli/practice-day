@@ -1927,6 +1927,17 @@
    border-radius: .75rem;
    box-shadow: 0 10px 25px rgba(22, 34, 51, .08);
    padding: .4rem;
+   z-index: 1080;
+}
+
+.dropdown.show {
+   z-index: 1080;
+   position: relative;
+}
+
+.file-card:has(.dropdown.show) {
+   z-index: 1080;
+   position: relative;
 }
 
 .dropdown-item {

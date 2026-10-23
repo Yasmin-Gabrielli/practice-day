@@ -6,6 +6,7 @@ $success = $feedback['success'] ?? null;
 $currentFolderId = $currentFolder['id'] ?? null;
 $isTrash = ($currentFilter === 'lixeira');
 $isFavorites = ($currentFilter === 'favoritos');
+$isImages = ($currentFilter === 'imagens');
 
 /* Na raiz (sem busca, filtro ou disciplina) mostramos apenas pastas:
    os arquivos só aparecem quando o usuário entra em uma pasta. */
@@ -173,6 +174,10 @@ require dirname(__DIR__) . '/layouts/header.php';
                     <a class="fm-tab <?= $isTrash ? 'active' : '' ?>" href="<?= Url::to('/arquivos?filtro=lixeira') ?>">
                         <i class="bi bi-trash3 text-danger"></i><span>Lixeira</span>
                         <span class="fm-tab-count"><?= (int) ($stats['total_lixeira'] ?? 0) ?></span>
+                    </a>
+                    <a class="fm-tab <?= ($currentFilter === 'imagens') ? 'active' : '' ?>" href="<?= Url::to('/arquivos?filtro=imagens') ?>">
+                        <i class="bi bi-camera text-primary"></i><span>Imagens</span>
+                        <span class="fm-tab-count"><?= (int) ($stats['total_imagens'] ?? 0) ?></span>
                     </a>
                 </div>
 
