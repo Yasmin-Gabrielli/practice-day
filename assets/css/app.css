@@ -307,6 +307,32 @@
    color: var(--app-text);
 }
 
+/* Garante que titulos e textos fortes fiquem legiveis no modo escuro */
+[data-bs-theme="dark"] h1,
+[data-bs-theme="dark"] h2,
+[data-bs-theme="dark"] h3,
+[data-bs-theme="dark"] h4,
+[data-bs-theme="dark"] h5,
+[data-bs-theme="dark"] h6,
+[data-bs-theme="dark"] strong {
+   color: var(--app-text);
+}
+
+[data-bs-theme="dark"] .summary-card strong,
+[data-bs-theme="dark"] .card-heading h2,
+[data-bs-theme="dark"] .file-card-title,
+[data-bs-theme="dark"] .file-name-text strong,
+[data-bs-theme="dark"] .fm-stat-card strong,
+[data-bs-theme="dark"] .task-details strong,
+[data-bs-theme="dark"] .compact-row strong,
+[data-bs-theme="dark"] .discipline-row span,
+[data-bs-theme="dark"] .fm-breadcrumb-item.active,
+[data-bs-theme="dark"] .fm-search-wrap input,
+[data-bs-theme="dark"] .fm-tab:hover,
+[data-bs-theme="dark"] .fm-view-btn:hover {
+   color: var(--app-text);
+}
+
 [data-bs-theme="dark"] .card,
 [data-bs-theme="dark"] .summary-card,
 [data-bs-theme="dark"] .dashboard-card,
@@ -330,6 +356,14 @@
 
 [data-bs-theme="dark"] .mobile-nav-drawer .app-brand {
    color: #f1f5f9;
+}
+
+[data-bs-theme="dark"] .dropdown-item:hover {
+   color: var(--app-text);
+}
+
+[data-bs-theme="dark"] .mobile-brand {
+   color: var(--app-text);
 }
 
 [data-bs-theme="dark"] .mobile-nav-drawer .mobile-nav-header,
