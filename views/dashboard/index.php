@@ -1,5 +1,6 @@
 <?php
 use App\Helpers\Lang;
+use App\Helpers\Url;
 
 $summary = $dashboard['summary'];
 $widgets = $dashboard['widgets'];

@@ -111,7 +111,7 @@ final class SettingsController extends Controller
             $files,
             static fn (string $file): bool => in_array(
                 strtolower(pathinfo($file, PATHINFO_EXTENSION)),
-                ['jpg', 'jpeg', 'png', 'webp'],
+                ['jpg', 'jpeg', 'png', 'webp', 'gif'],
                 true
             )
         ));

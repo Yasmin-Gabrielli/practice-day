@@ -12,12 +12,12 @@ require dirname(__DIR__) . '/layouts/header.php';
     content: '';
     position: absolute;
     inset: 0;
-    background: rgba(255,255,255,0.6);
+    background: rgba(255,255,255,0.35);
     z-index: 0;
     pointer-events: none;
 }
 [data-bs-theme="dark"] .pomodoro-timer-card::before {
-    background: rgba(0,0,0,0.55);
+    background: rgba(0,0,0,0.4);
 }
 .pomodoro-timer-card > * {
     position: relative;
