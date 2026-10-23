@@ -9,13 +9,20 @@ $wallpaperUrl = trim((string) (UserTheme::settings()['papel_parede'] ?? ''));
     min-height: 70vh;
     border-radius: 1rem;
 }
+.pomodoro-heading-card {
+    background: rgba(255,255,255,0.72) !important;
+    backdrop-filter: blur(8px);
+}
+[data-bs-theme="dark"] .pomodoro-heading-card {
+    background: rgba(30,30,40,0.65) !important;
+}
 </style>
 <div class="app-shell">
     <?php require dirname(__DIR__) . '/layouts/sidebar.php'; ?>
     <div class="app-content">
         <?php require dirname(__DIR__) . '/layouts/navbar.php'; ?>
         <main class="page-content" style="background-image: <?= $wallpaperUrl !== '' ? 'url(' . htmlspecialchars($wallpaperUrl, ENT_QUOTES, 'UTF-8') . ')' : 'none' ?>; background-size: 100% 100%; background-position: center; background-repeat: no-repeat;">
-            <div class="card border-0 shadow-sm mb-4">
+            <div class="card border-0 shadow-sm mb-4 pomodoro-heading-card">
                 <div class="card-body">
                     <section class="page-heading mb-0">
                         <div>
