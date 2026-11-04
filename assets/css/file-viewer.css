@@ -39,6 +39,86 @@
   .file-viewer-actions .btn span { display: none; }
 }
 
+/* Modo escuro para visualizador de arquivos */
+[data-bs-theme="dark"] .file-viewer-header {
+  background: var(--app-surface);
+  border-color: var(--app-border);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, .25);
+}
+
+[data-bs-theme="dark"] .file-viewer-title {
+  color: var(--app-text);
+}
+
+[data-bs-theme="dark"] .file-viewer-meta dd {
+  color: #cbd5e1;
+}
+
+[data-bs-theme="dark"] .file-viewer-page-indicator {
+  color: #94a3b8;
+}
+
+[data-bs-theme="dark"] .file-viewer-stage {
+  background: var(--app-surface);
+  border-color: var(--app-border);
+}
+
+[data-bs-theme="dark"] .file-viewer-message {
+  color: var(--app-muted);
+}
+
+[data-bs-theme="dark"] .file-viewer-message i {
+  color: #60a5fa;
+}
+
+[data-bs-theme="dark"] .pdf-viewer-wrap {
+  background: #0f1623;
+}
+
+[data-bs-theme="dark"] .pdf-canvas {
+  background: #fff;
+}
+
+[data-bs-theme="dark"] .image-viewer-wrap {
+  background: #0b1020;
+}
+
+[data-bs-theme="dark"] .txt-reader {
+  background: #1a1f2b;
+}
+
+[data-bs-theme="dark"] .txt-reader-content {
+  color: #e2e8f0;
+}
+
+[data-bs-theme="dark"] .docx-reader {
+  background: var(--app-surface);
+  color: #e2e8f0;
+}
+
+[data-bs-theme="dark"] .epub-sidebar {
+  background: var(--app-surface);
+  border-color: var(--app-border);
+}
+
+[data-bs-theme="dark"] .epub-sidebar h2 {
+  color: var(--app-muted);
+}
+
+[data-bs-theme="dark"] .epub-list li {
+  background: #252d3d;
+  border-color: var(--app-border);
+  color: #cbd5e1;
+}
+
+[data-bs-theme="dark"] .epub-stage:fullscreen {
+  background: #0f1623;
+}
+
+[data-bs-theme="dark"] .epub-viewer-host {
+  background: #0f1623;
+}
+
 @media (max-width: 575px) {
   .file-viewer-header { padding: 1rem; }
   .file-viewer-meta { flex-direction: column; gap: .65rem; }

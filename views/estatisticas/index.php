@@ -30,6 +30,8 @@ $hasData = $stats['tempo_estudado'] > 0 || $stats['tarefas_concluidas'] > 0;
                         <option value="dia" <?= $currentFilter === 'dia' ? 'selected' : '' ?>>Hoje</option>
                         <option value="semana" <?= $currentFilter === 'semana' ? 'selected' : '' ?>>Esta Semana</option>
                         <option value="mes" <?= $currentFilter === 'mes' ? 'selected' : '' ?>>Este Mês</option>
+                        <option value="mes_passado" <?= $currentFilter === 'mes_passado' ? 'selected' : '' ?>>Mês Passado</option>
+                        <option value="ano" <?= $currentFilter === 'ano' ? 'selected' : '' ?>>Ano Inteiro</option>
                     </select>
                 </form>
             </section>
@@ -116,7 +118,15 @@ document.addEventListener('DOMContentLoaded', function() {
             return item.label + 'h';
         } else {
             const dateParts = item.label.split('-');
-            return dateParts.length === 3 ? `${dateParts[2]}/${dateParts[1]}` : item.label;
+            if (dateParts.length === 3) {
+                // Labels no formato AAAA-MM-DD (dia/semana/mês passados)
+                return `${dateParts[2]}/${dateParts[1]}`;
+            }
+            if (dateParts.length === 2) {
+                // Labels no formato AAAA-MM (ano inteiro)
+                return `${dateParts[1]}/${dateParts[0]}`;
+            }
+            return item.label;
         }
     });
     const values = rawData.map(item => parseInt(item.valor, 10));

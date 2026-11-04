@@ -462,7 +462,7 @@ document.querySelectorAll('[data-icon-picker]').forEach((picker) => {
                 '<div class="notif-group-header">' +
                 '<span class="notif-group-icon text-' + meta.color + '"><i class="bi ' + meta.icon + '"></i></span>' +
                 '<h3 class="notif-group-title">' + meta.label + '</h3>' +
-                '<span class="notif-group-count badge bg-' + meta.color + ' bg-opacity-15 text-' + meta.color + '">' + items.length + '</span>' +
+                '<span class="notif-group-count badge" style="background: rgba(var(--bs-' + meta.color + '-rgb), 0.15); color: var(--bs-' + meta.color + ');">' + items.length + '</span>' +
                 '</div><div class="notif-card-list">' +
                 items.map((item) => cardHtml(item, meta)).join('') +
                 '</div></div>';
@@ -591,3 +591,23 @@ document.querySelectorAll('[data-icon-picker]').forEach((picker) => {
 
     sync();
 })();
+
+// Mostrar/ocultar senha nas telas de login e cadastro
+document.addEventListener('click', (event) => {
+    const toggle = event.target.closest('[data-toggle-password]');
+    if (!toggle) return;
+
+    const input = document.querySelector(toggle.getAttribute('data-toggle-password'));
+    if (!input) return;
+
+    const showing = input.type === 'password';
+    input.type = showing ? 'text' : 'password';
+    toggle.setAttribute('aria-pressed', showing ? 'true' : 'false');
+    toggle.setAttribute('aria-label', showing ? (toggle.dataset.hideLabel || 'Ocultar senha') : (toggle.dataset.showLabel || 'Mostrar senha'));
+
+    const icon = toggle.querySelector('i');
+    if (icon) {
+        icon.classList.toggle('bi-eye', !showing);
+        icon.classList.toggle('bi-eye-slash', showing);
+    }
+});

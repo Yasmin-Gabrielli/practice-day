@@ -75,7 +75,7 @@ final class DashboardRepository extends Repository
     public function recentNotes(string $userId): array
     {
         $statement = $this->db->prepare(
-            'SELECT n.titulo, n.atualizado_em, d.nome AS disciplina_nome
+            'SELECT n.id, n.titulo, n.atualizado_em, d.nome AS disciplina_nome
              FROM notas n
              LEFT JOIN disciplinas d ON d.id = n.disciplina_id AND d.usuario_id = n.usuario_id
              WHERE n.usuario_id = :usuario_id

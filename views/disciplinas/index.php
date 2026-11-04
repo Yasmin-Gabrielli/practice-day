@@ -27,7 +27,7 @@ require dirname(__DIR__) . '/layouts/header.php';
                         <?php $color = is_string($discipline['cor']) && preg_match('/^#[0-9a-fA-F]{6}$/', $discipline['cor']) ? $discipline['cor'] : '#2563eb'; ?>
                         <a class="discipline-card" href="<?= Url::to('/disciplinas/' . rawurlencode((string) $discipline['id'])) ?>">
                             <span class="discipline-card-icon" style="--discipline-color: <?= htmlspecialchars($color, ENT_QUOTES, 'UTF-8') ?>"><i class="bi <?= htmlspecialchars(\App\Validators\DisciplineValidator::safeIcon((string) $discipline['icone']), ENT_QUOTES, 'UTF-8') ?>"></i></span>
-                            <div class="discipline-card-title"><h2><?= htmlspecialchars((string) $discipline['nome'], ENT_QUOTES, 'UTF-8') ?></h2><span class="discipline-color-label"><i style="background: <?= htmlspecialchars($color, ENT_QUOTES, 'UTF-8') ?>"></i><?= htmlspecialchars($color, ENT_QUOTES, 'UTF-8') ?></span></div>
+                            <div class="discipline-card-title"><h2><?= htmlspecialchars((string) $discipline['nome'], ENT_QUOTES, 'UTF-8') ?></h2></div>
                             <div class="discipline-card-stats"><span><strong><?= (int) $discipline['arquivos_count'] ?></strong> arquivos</span><span><strong><?= (int) $discipline['tarefas_count'] ?></strong> tarefas</span><span><strong><?= (int) $discipline['notas_count'] ?></strong> notas</span></div>
                             <i class="bi bi-arrow-up-right discipline-arrow"></i>
                         </a>

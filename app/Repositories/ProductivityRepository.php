@@ -99,6 +99,10 @@ class ProductivityRepository extends Repository
             $dateFilter = "AND YEARWEEK(inicio_sessao, 1) = YEARWEEK(CURDATE(), 1)";
         } elseif ($filter === 'mes') {
             $dateFilter = "AND MONTH(inicio_sessao) = MONTH(CURDATE()) AND YEAR(inicio_sessao) = YEAR(CURDATE())";
+        } elseif ($filter === 'mes_passado') {
+            $dateFilter = "AND YEAR(inicio_sessao) = YEAR(CURDATE() - INTERVAL 1 MONTH) AND MONTH(inicio_sessao) = MONTH(CURDATE() - INTERVAL 1 MONTH)";
+        } elseif ($filter === 'ano') {
+            $dateFilter = "AND YEAR(inicio_sessao) = YEAR(CURDATE())";
         }
 
         $disciplineFilterSession = "";
@@ -130,10 +134,16 @@ class ProductivityRepository extends Repository
         // Group by day for the chart
         if ($filter === 'mes') {
             $groupBy = "DATE(inicio_sessao)";
-            $limit = 30;
+            $limit = 31;
         } elseif ($filter === 'semana') {
             $groupBy = "DATE(inicio_sessao)";
             $limit = 7;
+        } elseif ($filter === 'mes_passado') {
+            $groupBy = "DATE(inicio_sessao)";
+            $limit = 31;
+        } elseif ($filter === 'ano') {
+            $groupBy = "DATE_FORMAT(inicio_sessao, '%Y-%m')";
+            $limit = 12;
         } else { // dia
             $groupBy = "HOUR(inicio_sessao)";
             $limit = 24;

@@ -44,6 +44,31 @@ final class NoteController extends Controller
         exit;
     }
 
+    public function viewNotePage(string $id): void
+    {
+        $this->auth();
+        try {
+            $note = $this->service()->find($this->user(), $id);
+            $this->renderView('notas/view', [
+                'title' => htmlspecialchars((string) $note['titulo'], ENT_QUOTES, 'UTF-8') . ' | PracticeDay',
+                'csrfToken' => Csrf::token(),
+                'userName' => $_SESSION['user_name'] ?? '',
+                'userAvatar' => $_SESSION['user_avatar'] ?? null,
+                'activePage' => 'notas',
+                'note' => $note,
+                'disciplines' => $this->service()->disciplines($this->user()),
+            ]);
+        } catch (\Throwable $e) {
+            $this->redirect('/notas');
+        }
+    }
+
+    private function renderView(string $view, array $data = []): void
+    {
+        extract($data, EXTR_SKIP);
+        require dirname(__DIR__, 2) . '/views/' . $view . '.php';
+    }
+
     public function create(): never
     {
         $this->auth();

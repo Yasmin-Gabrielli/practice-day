@@ -35,7 +35,7 @@ final class StatisticsController extends Controller
         $this->auth();
         $userId = $this->u();
         
-        $filter = $_GET['filter'] ?? 'mes'; // dia, semana, mes
+        $filter = $_GET['filter'] ?? 'mes'; // dia, semana, mes, mes_passado, ano
         $disciplineId = !empty($_GET['disciplina']) ? $_GET['disciplina'] : null;
         
         $disciplineRepository = new DisciplineRepository($this->config['database']);

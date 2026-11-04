@@ -112,6 +112,7 @@ $router->get('/calendario/tarefa/{id}/view', static fn (string $id) => $calendar
 $router->get('/notas', static fn () => $noteController->index());
 $router->get('/notas/nova', static fn () => $noteController->newForm());
 $router->post('/notas', static fn () => $noteController->create());
+$router->get('/notas/{id}/ver', static fn (string $id) => $noteController->viewNotePage($id));
 $router->get('/notas/{id}/editar', static fn (string $id) => $noteController->editForm($id));
 $router->get('/notas/{id}/view', static fn (string $id) => $noteController->viewNote($id));
 $router->post('/notas/{id}/editar', static fn (string $id) => $noteController->update($id));
