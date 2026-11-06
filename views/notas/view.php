@@ -44,7 +44,7 @@ $formatDate = static fn (?string $date): string => $date ? date('d/m/Y H:i', str
                         <?php foreach ($blocks as $block): ?>
                         <div class="note-block-view">
                             <div class="d-flex align-items-center gap-2 mb-2">
-                                <span class="badge bg-light text-dark"><?= htmlspecialchars((string) ($block['tipo_bloco'] ?? 'texto'), ENT_QUOTES, 'UTF-8') ?></span>
+                                <span class="badge text-uppercase"><?= htmlspecialchars((string) ($block['tipo_bloco'] ?? 'texto'), ENT_QUOTES, 'UTF-8') ?></span>
                             </div>
                             <div class="note-block-content">
                                 <?php if (($block['tipo_bloco'] ?? 'texto') === 'codigo'): ?>

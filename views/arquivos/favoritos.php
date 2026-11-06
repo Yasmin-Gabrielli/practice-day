@@ -177,7 +177,7 @@ require dirname(__DIR__) . '/layouts/header.php';
                                     <div class="text-muted small">
                                         <?= $formatBytes((int) ($f['tamanho_bytes'] ?? 0)) ?>
                                         <?php if (!empty($f['disciplina_nome'])): ?>
-                                            &nbsp;·&nbsp;<span class="badge" style="background:<?= htmlspecialchars((string)($f['disciplina_cor'] ?? '#6c757d'), ENT_QUOTES, 'UTF-8') ?>;font-size:.65rem;"><?= htmlspecialchars((string)$f['disciplina_nome'], ENT_QUOTES, 'UTF-8') ?></span>
+                                            &nbsp;·&nbsp;<span class="badge badge-discipline" style="--tag-color: <?= htmlspecialchars((string)($f['disciplina_cor'] ?? '#6c757d'), ENT_QUOTES, 'UTF-8') ?>;"><?= htmlspecialchars((string)$f['disciplina_nome'], ENT_QUOTES, 'UTF-8') ?></span>
                                         <?php endif; ?>
                                     </div>
                                     <?php if (!empty($f['pasta_nome'])): ?>

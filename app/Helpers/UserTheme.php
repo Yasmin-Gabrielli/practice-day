@@ -99,21 +99,37 @@ final class UserTheme
     }
 
     /**
-     * Calcula a cor de texto (preto ou branco) com melhor contraste
-     * para a cor primaria informada, com base na luminancia relativa.
+     * Calcula a cor de texto (quase preto ou branco) com melhor contraste
+     * para a cor informada, com base na luminancia relativa WCAG.
      */
     public static function primaryTextColor(string $hex): string
     {
         $hex = ltrim($hex, '#');
-        if (strlen($hex) !== 6) {
+        if (strlen($hex) !== 6 || !ctype_xdigit($hex)) {
             return '#ffffff';
         }
-        $r = hexdec(substr($hex, 0, 2)) / 255;
-        $g = hexdec(substr($hex, 2, 2)) / 255;
-        $b = hexdec(substr($hex, 4, 2)) / 255;
-        // Luminancia relativa (sRGB)
-        $lum = 0.2126 * $r + 0.7152 * $g + 0.0722 * $b;
-        return $lum > 0.55 ? '#111827' : '#ffffff';
+
+        $lum = self::relativeLuminance($hex);
+        $dark = '#111827';
+        $darkLum = self::relativeLuminance(ltrim($dark, '#'));
+
+        $contrastWithWhite = 1.05 / ($lum + 0.05);
+        $contrastWithDark = ($lum + 0.05) / ($darkLum + 0.05);
+
+        return $contrastWithWhite >= $contrastWithDark ? '#ffffff' : $dark;
+    }
+
+    private static function relativeLuminance(string $hex): float
+    {
+        $channels = [];
+        foreach ([0, 2, 4] as $offset) {
+            $value = hexdec(substr($hex, $offset, 2)) / 255;
+            $channels[] = $value <= 0.03928
+                ? $value / 12.92
+                : (($value + 0.055) / 1.055) ** 2.4;
+        }
+
+        return 0.2126 * $channels[0] + 0.7152 * $channels[1] + 0.0722 * $channels[2];
     }
 
     /** @return array{0: int, 1: int, 2: int} */

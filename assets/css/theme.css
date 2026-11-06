@@ -1,0 +1,992 @@
+/* ============================================================
+   PracticeDay — Camada de tema central
+   ------------------------------------------------------------
+   Tokens de cor, superfícies, bordas, estados e acessibilidade.
+   Este arquivo é carregado depois de app.css e é a única fonte
+   de verdade para as cores do tema (claro e escuro).
+   ============================================================ */
+
+/* ============================================================
+   1. Tokens — modo claro (padrão)
+   ============================================================ */
+:root,
+[data-bs-theme="light"] {
+   color-scheme: light;
+
+   /* Superfícies */
+   --app-surface: #ffffff;
+   --app-surface-2: #f8fafc;
+   --app-surface-3: #eef2f7;
+   --app-surface-muted: #f6f8fb;
+
+   /* Texto */
+   --app-text: #1e293b;
+   --app-text-strong: #0f172a;
+   --app-muted: #55657a;          /* ~5.8:1 sobre branco */
+   --app-text-subtle: #5b6b80;
+
+   /* Bordas */
+   --app-border: #e2e8f0;
+   --app-border-strong: #cbd5e1;
+   --app-border-control: #b9c5d4;
+
+   /* Estados e foco */
+   --app-hover: #f1f5f9;
+   --app-primary-contrast: var(--bs-primary-text, #ffffff);
+   --app-primary-soft: color-mix(in srgb, var(--bs-primary) 10%, var(--app-surface));
+   --app-focus-ring: color-mix(in srgb, var(--bs-primary) 38%, transparent);
+   --app-focus-outline: color-mix(in srgb, var(--bs-primary) 60%, var(--app-text-strong));
+
+   /* Cores semânticas (legíveis sobre superfícies claras) */
+   --app-success: #146c43;
+   --app-success-soft: #e7f5ee;
+   --app-warning: #8a5a00;
+   --app-warning-soft: #fff4d6;
+   --app-danger: #b02a37;
+   --app-danger-soft: #fdecee;
+   --app-info: #0e7490;
+   --app-info-soft: #e6f6fa;
+
+   /* Sombras */
+   --app-shadow-sm: 0 4px 12px rgba(22, 34, 51, .05);
+   --app-shadow-md: 0 12px 28px rgba(22, 34, 51, .09);
+
+   /* Mapeamento Bootstrap */
+   --bs-body-bg: var(--app-surface-muted);
+   --bs-body-color: var(--app-text);
+   --bs-emphasis-color: var(--app-text-strong);
+   --bs-heading-color: var(--app-text-strong);
+   --bs-secondary-color: var(--app-muted);
+   --bs-tertiary-color: var(--app-muted);
+   --bs-secondary-bg: var(--app-surface-2);
+   --bs-tertiary-bg: var(--app-surface-3);
+   --bs-border-color: var(--app-border);
+   --bs-border-color-translucent: rgba(15, 23, 42, .12);
+}
+
+/* ============================================================
+   2. Tokens — modo escuro
+   ============================================================ */
+[data-bs-theme="dark"] {
+   color-scheme: dark;
+
+   /* Superfícies */
+   --app-surface: #1e2430;
+   --app-surface-2: #252d3d;
+   --app-surface-3: #2b3547;
+   --app-surface-muted: #151a23;
+
+   /* Texto */
+   --app-text: #e5eaf2;
+   --app-text-strong: #f8fafc;
+   --app-muted: #a9b7ca;          /* ~8:1 sobre #1e2430 */
+   --app-text-subtle: #9aa9bd;
+
+   /* Bordas */
+   --app-border: #2f3a4b;
+   --app-border-strong: #41506a;
+   --app-border-control: #4a5a73;
+
+   /* Estados e foco */
+   --app-hover: #2a3446;
+   --app-primary-contrast: var(--bs-primary-text, #ffffff);
+   --app-primary-soft: color-mix(in srgb, var(--bs-primary) 24%, var(--app-surface));
+   --app-focus-ring: color-mix(in srgb, #93c5fd 45%, transparent);
+   --app-focus-outline: color-mix(in srgb, var(--bs-primary) 35%, #ffffff);
+
+   /* Cores semânticas (legíveis sobre superfícies escuras) */
+   --app-success: #4ade80;
+   --app-success-soft: rgba(34, 197, 94, .16);
+   --app-warning: #fbbf24;
+   --app-warning-soft: rgba(251, 191, 36, .16);
+   --app-danger: #fca5a5;
+   --app-danger-soft: rgba(239, 68, 68, .16);
+   --app-info: #67e8f9;
+   --app-info-soft: rgba(34, 211, 238, .14);
+
+   /* Sombras */
+   --app-shadow-sm: 0 4px 14px rgba(0, 0, 0, .35);
+   --app-shadow-md: 0 14px 34px rgba(0, 0, 0, .45);
+
+   /* Mapeamento Bootstrap */
+   --bs-body-bg: var(--app-surface-muted);
+   --bs-body-color: var(--app-text);
+   --bs-emphasis-color: var(--app-text-strong);
+   --bs-heading-color: var(--app-text-strong);
+   --bs-secondary-color: var(--app-muted);
+   --bs-tertiary-color: var(--app-text-subtle);
+   --bs-secondary-bg: var(--app-surface-2);
+   --bs-tertiary-bg: var(--app-surface-3);
+   --bs-border-color: var(--app-border);
+   --bs-border-color-translucent: rgba(226, 232, 240, .14);
+}
+
+/* ============================================================
+   3. Remapeamento das utilidades fixas do Bootstrap
+   ------------------------------------------------------------
+   bg-light, bg-white, text-dark, btn-light, table-light e
+   text-bg-light não respeitam o modo escuro por padrão.
+   ============================================================ */
+.bg-light {
+   background-color: var(--app-surface-2) !important;
+}
+
+.bg-white {
+   background-color: var(--app-surface) !important;
+}
+
+/* O Bootstrap 5.3 não traz .bg-opacity-15/.bg-opacity-20,
+   mas os badges de notificação usam esses níveis. */
+.bg-opacity-15 {
+   --bs-bg-opacity: .15 !important;
+}
+
+.bg-opacity-20 {
+   --bs-bg-opacity: .2 !important;
+}
+
+.text-dark {
+   color: var(--app-text) !important;
+}
+
+.text-muted {
+   color: var(--app-muted) !important;
+}
+
+.text-secondary {
+   color: var(--app-muted) !important;
+}
+
+.text-body-secondary,
+.text-body-tertiary {
+   color: var(--app-muted) !important;
+}
+
+.border-light,
+.border-white {
+   border-color: var(--app-border) !important;
+}
+
+.btn-light {
+   --bs-btn-color: var(--app-text);
+   --bs-btn-bg: var(--app-surface-2);
+   --bs-btn-border-color: var(--app-border);
+   --bs-btn-hover-color: var(--app-text-strong);
+   --bs-btn-hover-bg: var(--app-surface-3);
+   --bs-btn-hover-border-color: var(--app-border-strong);
+   --bs-btn-active-color: var(--app-text-strong);
+   --bs-btn-active-bg: var(--app-surface-3);
+   --bs-btn-active-border-color: var(--app-border-strong);
+   --bs-btn-disabled-color: var(--app-text-subtle);
+   --bs-btn-disabled-bg: var(--app-surface-2);
+   --bs-btn-disabled-border-color: var(--app-border);
+}
+
+.table-light {
+   --bs-table-color: var(--app-text);
+   --bs-table-bg: var(--app-surface-2);
+   --bs-table-border-color: var(--app-border);
+   --bs-table-striped-bg: var(--app-surface-3);
+   --bs-table-striped-color: var(--app-text);
+   --bs-table-hover-bg: var(--app-hover);
+   --bs-table-hover-color: var(--app-text-strong);
+}
+
+.text-bg-light {
+   color: var(--app-text) !important;
+   background-color: var(--app-surface-3) !important;
+}
+
+/* Cores semânticas de texto: garante contraste nos dois temas */
+.text-success {
+   color: var(--app-success) !important;
+}
+
+.text-danger {
+   color: var(--app-danger) !important;
+}
+
+.text-warning {
+   color: var(--app-warning) !important;
+}
+
+.text-info {
+   color: var(--app-info) !important;
+}
+
+.text-success-emphasis {
+   color: var(--app-success) !important;
+}
+
+.text-danger-emphasis {
+   color: var(--app-danger) !important;
+}
+
+.text-warning-emphasis {
+   color: var(--app-warning) !important;
+}
+
+.text-info-emphasis {
+   color: var(--app-info) !important;
+}
+
+.text-secondary-emphasis {
+   color: var(--app-text) !important;
+}
+
+.text-primary {
+   color: color-mix(in srgb, var(--bs-primary) 42%, var(--app-text-strong)) !important;
+}
+
+[data-bs-theme="dark"] .text-primary {
+   color: color-mix(in srgb, var(--bs-primary) 45%, #ffffff) !important;
+}
+
+/* Botões de contorno seguem a cor primária escolhida pelo usuário */
+.btn-outline-primary {
+   --bs-btn-color: color-mix(in srgb, var(--bs-primary) 42%, var(--app-text-strong));
+   --bs-btn-border-color: color-mix(in srgb, var(--bs-primary) 46%, var(--app-text-strong));
+   --bs-btn-hover-color: var(--bs-primary-contrast);
+   --bs-btn-hover-bg: var(--bs-primary);
+   --bs-btn-hover-border-color: var(--bs-primary);
+   --bs-btn-active-color: var(--bs-primary-contrast);
+   --bs-btn-active-bg: var(--bs-primary);
+   --bs-btn-active-border-color: var(--bs-primary);
+   --bs-btn-disabled-color: var(--app-muted);
+   --bs-btn-disabled-border-color: var(--app-border-strong);
+}
+
+[data-bs-theme="dark"] .btn-outline-primary {
+   --bs-btn-color: color-mix(in srgb, var(--bs-primary) 45%, #ffffff);
+   --bs-btn-border-color: color-mix(in srgb, var(--bs-primary) 55%, #ffffff);
+}
+
+/* Badges sólidos: texto sempre legível */
+.badge.bg-primary:not([class*="bg-opacity-"]),
+.text-bg-primary {
+   color: var(--bs-primary-text, #ffffff) !important;
+   background-color: var(--bs-primary) !important;
+}
+
+.badge.bg-success:not([class*="bg-opacity-"]),
+.text-bg-success {
+   color: #ffffff !important;
+   background-color: #146c43 !important;
+}
+
+.badge.bg-danger:not([class*="bg-opacity-"]),
+.text-bg-danger {
+   color: #ffffff !important;
+   background-color: #b02a37 !important;
+}
+
+.badge.bg-warning:not([class*="bg-opacity-"]),
+.text-bg-warning {
+   color: #111827 !important;
+   background-color: #ffc107 !important;
+}
+
+.badge.bg-info:not([class*="bg-opacity-"]),
+.text-bg-info {
+   color: #062a33 !important;
+   background-color: #0dcaf0 !important;
+}
+
+.badge.bg-secondary:not([class*="bg-opacity-"]),
+.text-bg-secondary {
+   color: #ffffff !important;
+   background-color: #5b6b80 !important;
+}
+
+/* ============================================================
+   4. Base, foco visível e acessibilidade
+   ============================================================ */
+html {
+   scroll-behavior: smooth;
+}
+
+body {
+   color: var(--app-text);
+   background-color: var(--app-surface-muted);
+}
+
+/* Contorno de foco consistente e visível em qualquer superfície */
+a:focus-visible,
+button:focus-visible,
+.btn:focus-visible,
+.nav-link:focus-visible,
+.dropdown-item:focus-visible,
+.page-link:focus-visible,
+.list-group-item:focus-visible,
+.form-control:focus-visible,
+.form-select:focus-visible,
+.form-check-input:focus-visible,
+.sidebar-link:focus-visible,
+.icon-button:focus-visible,
+summary:focus-visible,
+[tabindex]:not([tabindex="-1"]):focus-visible {
+   outline: 3px solid var(--app-focus-outline);
+   outline-offset: 2px;
+}
+
+/* Nunca esconder o foco do teclado */
+.btn:focus:not(:focus-visible),
+.nav-link:focus:not(:focus-visible),
+.form-check-input:focus:not(:focus-visible) {
+   outline: none;
+}
+
+::selection {
+   color: var(--bs-primary-text, #ffffff);
+   background-color: var(--bs-primary);
+}
+
+/* ============================================================
+   5. Formulários
+   ============================================================ */
+.form-label {
+   color: var(--app-text);
+}
+
+.form-text {
+   color: var(--app-text-subtle);
+}
+
+.form-control,
+.form-select {
+   color: var(--app-text);
+   background-color: var(--app-surface);
+   border-color: var(--app-border-control);
+}
+
+.form-control:hover:not(:disabled):not([readonly]),
+.form-select:hover:not(:disabled) {
+   border-color: var(--app-border-strong);
+}
+
+.form-control:focus,
+.form-select:focus {
+   color: var(--app-text);
+   background-color: var(--app-surface);
+   border-color: var(--bs-primary);
+   box-shadow: 0 0 0 .22rem var(--app-focus-ring);
+}
+
+.form-control:disabled,
+.form-control[readonly],
+.form-select:disabled {
+   color: var(--app-text-subtle);
+   background-color: var(--app-surface-2);
+   border-color: var(--app-border);
+}
+
+.form-control::placeholder,
+textarea::placeholder {
+   color: var(--app-text-subtle);
+   opacity: 1;
+}
+
+.form-check-input {
+   background-color: var(--app-surface);
+   border-color: var(--app-border-control);
+}
+
+.form-check-input:checked {
+   background-color: var(--bs-primary);
+   border-color: var(--bs-primary);
+}
+
+.form-check-input:focus {
+   border-color: var(--bs-primary);
+   box-shadow: 0 0 0 .2rem var(--app-focus-ring);
+}
+
+.form-check-label,
+.form-check .form-label {
+   color: var(--app-text);
+}
+
+.input-group-text {
+   color: var(--app-muted);
+   background-color: var(--app-surface-2);
+   border-color: var(--app-border-control);
+}
+
+.input-group-text.bg-white {
+   background-color: var(--app-surface) !important;
+}
+
+/* Autofill do navegador mantém o texto legível */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+select:-webkit-autofill {
+   -webkit-text-fill-color: var(--app-text);
+   -webkit-box-shadow: 0 0 0 1000px var(--app-surface) inset;
+   box-shadow: 0 0 0 1000px var(--app-surface) inset;
+   caret-color: var(--app-text);
+   transition: background-color 9999s ease-out;
+}
+
+/* ============================================================
+   6. Superfícies e componentes base
+   ============================================================ */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.h1,
+.h2,
+.h3,
+.h4,
+.h5,
+.h6 {
+   color: var(--app-text-strong);
+}
+
+.card,
+.modal-content,
+.dropdown-menu,
+.offcanvas,
+.list-group-item,
+.accordion-item,
+.popover {
+   color: var(--app-text);
+   background-color: var(--app-surface);
+   border-color: var(--app-border);
+}
+
+.card-header,
+.card-footer,
+.modal-header,
+.modal-footer,
+.offcanvas-header,
+.offcanvas-footer {
+   border-color: var(--app-border);
+}
+
+.card-header:not(.bg-transparent),
+.card-footer:not(.bg-transparent) {
+   background-color: var(--app-surface-2);
+}
+
+.card-header.bg-transparent,
+.card-footer.bg-transparent {
+   background-color: transparent !important;
+}
+
+.dropdown-divider {
+   border-color: var(--app-border);
+   opacity: 1;
+}
+
+.dropdown-item {
+   color: var(--app-text);
+}
+
+.dropdown-item:hover,
+.dropdown-item:focus {
+   color: var(--app-text-strong);
+   background-color: var(--app-hover);
+}
+
+.dropdown-menu {
+   box-shadow: var(--app-shadow-md);
+}
+
+hr {
+   border-color: var(--app-border);
+   opacity: 1;
+}
+
+.table {
+   --bs-table-color: var(--app-text);
+   --bs-table-bg: transparent;
+   --bs-table-border-color: var(--app-border);
+   --bs-table-striped-bg: var(--app-surface-2);
+   --bs-table-striped-color: var(--app-text);
+   --bs-table-hover-bg: var(--app-hover);
+   --bs-table-hover-color: var(--app-text-strong);
+   color: var(--app-text);
+}
+
+.table > :not(caption) > * > * {
+   color: var(--bs-table-color);
+   border-color: var(--bs-table-border-color);
+}
+
+.table thead th {
+   color: var(--app-text);
+}
+
+.progress {
+   background-color: var(--app-surface-3);
+}
+
+.pagination {
+   --bs-pagination-color: var(--app-text);
+   --bs-pagination-bg: var(--app-surface);
+   --bs-pagination-border-color: var(--app-border);
+   --bs-pagination-hover-color: var(--app-text-strong);
+   --bs-pagination-hover-bg: var(--app-hover);
+   --bs-pagination-hover-border-color: var(--app-border-strong);
+   --bs-pagination-disabled-color: var(--app-muted);
+   --bs-pagination-disabled-bg: var(--app-surface-2);
+   --bs-pagination-disabled-border-color: var(--app-border);
+}
+
+/* ============================================================
+   7. Planner (Kanban)
+   ============================================================ */
+.planner-column {
+   color: var(--app-text);
+   background-color: var(--app-surface-2) !important;
+   border: 1px solid var(--app-border) !important;
+}
+
+.planner-column .card-header {
+   background-color: transparent !important;
+   border-bottom: 1px solid var(--app-border) !important;
+}
+
+.planner-column .card-header h5,
+.planner-column .card-header h6 {
+   color: var(--app-text-strong);
+}
+
+.planner-empty-state {
+   color: var(--app-muted) !important;
+   background-color: color-mix(in srgb, var(--app-surface) 60%, transparent) !important;
+   border: 2px dashed var(--app-border-strong) !important;
+}
+
+.task-dropzone {
+   border-radius: .65rem;
+}
+
+.task-dropzone.drag-over {
+   background-color: var(--app-primary-soft) !important;
+   border-color: var(--bs-primary) !important;
+}
+
+.task-card {
+   color: var(--app-text);
+   background-color: var(--app-surface) !important;
+   border: 1px solid var(--app-border) !important;
+   box-shadow: var(--app-shadow-sm);
+}
+
+.task-card:hover {
+   border-color: var(--app-border-strong) !important;
+}
+
+.task-card h6 {
+   color: var(--app-text-strong);
+}
+
+.task-card .text-muted {
+   color: var(--app-muted) !important;
+}
+
+.task-card img {
+   border-color: var(--app-border) !important;
+}
+
+/* ============================================================
+   8. Notas
+   ============================================================ */
+.note-row {
+   background-color: var(--app-surface);
+   border: 1px solid var(--app-border) !important;
+   transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+.note-row:hover {
+   border-color: var(--app-border-strong) !important;
+   box-shadow: var(--app-shadow-sm);
+}
+
+.note-row h2 {
+   color: var(--app-text-strong);
+}
+
+.note-preview {
+   color: var(--app-muted) !important;
+}
+
+.note-actions {
+   display: inline-flex;
+   flex: 0 0 auto;
+   align-items: center;
+   gap: .5rem;
+}
+
+.note-action-btn {
+   display: inline-flex;
+   align-items: center;
+   justify-content: center;
+   width: 2rem;
+   height: 2rem;
+   padding: 0;
+   border-radius: .55rem;
+   flex: 0 0 auto;
+}
+
+.note-action-btn:hover,
+.note-action-btn:focus-visible {
+   color: color-mix(in srgb, var(--bs-primary) 42%, var(--app-text-strong)) !important;
+   background-color: var(--app-primary-soft) !important;
+   border-color: color-mix(in srgb, var(--bs-primary) 46%, var(--app-border-strong)) !important;
+}
+
+.note-icon {
+   color: #9a5f0a;
+   background: #fff3df;
+}
+
+.file-icon {
+   color: #1d4ed8;
+   background: #e8f0ff;
+}
+
+.note-content,
+.note-block-content {
+   color: var(--app-text);
+   line-height: 1.7;
+}
+
+.note-block-view {
+   padding: .9rem 1rem;
+   color: var(--app-text);
+   background-color: var(--app-surface-2);
+   border: 1px solid var(--app-border);
+   border-radius: .8rem;
+}
+
+.note-block-content pre {
+   color: var(--app-text);
+   background-color: var(--app-surface-3);
+   border: 1px solid var(--app-border);
+}
+
+.note-block-view .badge {
+   color: var(--app-text) !important;
+   background-color: var(--app-surface-3) !important;
+   border: 1px solid var(--app-border) !important;
+}
+
+/* ============================================================
+   9. Pastas, arquivos e biblioteca
+   ============================================================ */
+.folder-section-header h2 {
+   color: var(--app-text-strong);
+}
+
+.folder-card {
+   color: var(--app-text);
+   background-color: var(--app-surface);
+   border-color: var(--app-border);
+}
+
+.folder-card:hover {
+   color: var(--app-text);
+   border-color: var(--app-border-strong);
+   box-shadow: var(--app-shadow-sm);
+}
+
+.folder-card-title {
+   color: var(--app-text-strong);
+}
+
+.folder-card-actions .dropdown-toggle {
+   color: var(--app-muted);
+}
+
+.folder-card-actions .dropdown-toggle:hover {
+   color: var(--app-text-strong);
+   background-color: var(--app-hover);
+}
+
+.file-card {
+   color: var(--app-text);
+   background-color: var(--app-surface);
+   border-color: var(--app-border);
+}
+
+.file-card:hover {
+   border-color: var(--app-border-strong);
+}
+
+.file-card-title {
+   color: var(--app-text-strong);
+}
+
+.file-card-visual {
+   background-color: var(--app-surface-2);
+   border-color: var(--app-border);
+}
+
+.file-card:hover .file-card-visual {
+   background-color: var(--app-surface-3);
+}
+
+.file-card-footer {
+   border-top-color: var(--app-border);
+}
+
+/* Cores dinâmicas de disciplina/tag: a cor escolhida pelo usuário
+   é usada apenas como tinta sobre a superfície do tema, preservando
+   o contraste do texto em ambos os modos. */
+.folder-card-icon,
+.file-tag,
+.badge-discipline {
+   background-color: color-mix(in srgb, var(--tag-color, var(--bs-primary)) 14%, var(--app-surface)) !important;
+   color: color-mix(in srgb, var(--tag-color, var(--bs-primary)) 35%, var(--app-text-strong)) !important;
+   border: 1px solid color-mix(in srgb, var(--tag-color, var(--bs-primary)) 26%, var(--app-surface)) !important;
+}
+
+[data-bs-theme="dark"] .folder-card-icon,
+[data-bs-theme="dark"] .file-tag,
+[data-bs-theme="dark"] .badge-discipline {
+   background-color: color-mix(in srgb, var(--tag-color, var(--bs-primary)) 24%, var(--app-surface-2)) !important;
+   color: color-mix(in srgb, var(--tag-color, var(--bs-primary)) 42%, #ffffff) !important;
+   border-color: color-mix(in srgb, var(--tag-color, var(--bs-primary)) 40%, var(--app-surface-2)) !important;
+}
+
+.empty-state,
+.card-heading-icon {
+   color: var(--app-text-subtle);
+}
+
+.empty-state p {
+   color: var(--app-muted);
+}
+
+.empty-state-card {
+   color: var(--app-text);
+   background-color: var(--app-surface);
+   border-color: var(--app-border);
+}
+
+.empty-state-icon {
+   color: #1d4ed8;
+   background: #e8f0ff;
+}
+
+.empty-module-state {
+   color: var(--app-text);
+   background-color: var(--app-surface);
+   border-color: var(--app-border-strong);
+}
+
+.empty-module-state > span {
+   color: #1d4ed8;
+   background: #e8f0ff;
+}
+
+.discipline-card-title h2 {
+   color: var(--app-text-strong);
+}
+
+.discipline-arrow {
+   color: var(--app-muted);
+}
+
+.discipline-card-icon,
+.discipline-hero-icon {
+   color: color-mix(in srgb, var(--discipline-color, var(--bs-primary)) 35%, var(--app-text-strong));
+   background: color-mix(in srgb, var(--discipline-color, var(--bs-primary)) 14%, var(--app-surface));
+}
+
+[data-bs-theme="dark"] .discipline-card-icon,
+[data-bs-theme="dark"] .discipline-hero-icon {
+   color: color-mix(in srgb, var(--discipline-color, var(--bs-primary)) 45%, #ffffff);
+   background: color-mix(in srgb, var(--discipline-color, var(--bs-primary)) 24%, var(--app-surface-2));
+}
+
+.discipline-card-stats {
+   color: var(--app-muted);
+}
+
+.discipline-card-stats strong {
+   color: var(--app-text);
+}
+
+/* ============================================================
+   10. Configurações, notificações e componentes diversos
+   ============================================================ */
+.settings-theme-option span {
+   color: var(--app-text);
+   background-color: var(--app-surface);
+   border-color: var(--app-border);
+}
+
+.settings-theme-option input:checked + span {
+   color: color-mix(in srgb, var(--bs-primary) 42%, var(--app-text-strong));
+   border-color: var(--bs-primary);
+   box-shadow: 0 0 0 3px var(--app-primary-soft);
+}
+
+.settings-page .settings-section-label {
+   color: color-mix(in srgb, var(--bs-primary) 42%, var(--app-text-strong));
+}
+
+[data-bs-theme="dark"] .settings-page .settings-section-label {
+   color: color-mix(in srgb, var(--bs-primary) 45%, #ffffff);
+}
+
+.badge-discipline {
+   font-size: .65rem;
+   font-weight: 600;
+}
+
+.notif-card {
+   color: var(--app-text);
+   background-color: var(--app-surface);
+   border-color: var(--app-border);
+}
+
+.notif-card--unread {
+   background-color: color-mix(in srgb, var(--bs-primary) 6%, var(--app-surface));
+}
+
+.notif-card--read {
+   opacity: .82;
+}
+
+.quick-action {
+   color: var(--app-text);
+}
+
+.avatar {
+   border: 1px solid var(--app-border);
+}
+
+/* ============================================================
+   11. Código / pré-formatado
+   ============================================================ */
+pre {
+   color: var(--app-text);
+}
+
+pre.bg-light {
+   background-color: var(--app-surface-3) !important;
+   border: 1px solid var(--app-border);
+}
+
+pre.bg-dark {
+   color: #f8fafc !important;
+   background-color: #0f172a !important;
+}
+
+/* ============================================================
+   12. Ajustes específicos do modo escuro
+   ============================================================ */
+[data-bs-theme="dark"] .note-icon {
+   color: #fbbf24;
+   background: rgba(251, 191, 36, .16);
+}
+
+[data-bs-theme="dark"] .file-icon {
+   color: #93c5fd;
+   background: rgba(147, 197, 253, .14);
+}
+
+[data-bs-theme="dark"] .avatar {
+   color: #93c5fd;
+   background: rgba(96, 165, 250, .18);
+}
+
+[data-bs-theme="dark"] .empty-state-icon,
+[data-bs-theme="dark"] .empty-module-state > span {
+   color: #93c5fd;
+   background: rgba(96, 165, 250, .16);
+}
+
+[data-bs-theme="dark"] .badge-pdf {
+   color: #fca5a5;
+   background: rgba(239, 68, 68, .16);
+}
+
+[data-bs-theme="dark"] .badge-docx {
+   color: #93c5fd;
+   background: rgba(59, 130, 246, .16);
+}
+
+[data-bs-theme="dark"] .badge-epub {
+   color: #c4b5fd;
+   background: rgba(139, 92, 246, .18);
+}
+
+[data-bs-theme="dark"] .badge-txt {
+   color: #cbd5e1;
+   background: rgba(148, 163, 184, .16);
+}
+
+[data-bs-theme="dark"] .badge-img {
+   color: #6ee7b7;
+   background: rgba(16, 185, 129, .16);
+}
+
+[data-bs-theme="dark"] .badge-file {
+   color: #cbd5e1;
+   background: rgba(148, 163, 184, .14);
+}
+
+[data-bs-theme="dark"] .file-icon-wrap {
+   background: rgba(96, 165, 250, .14);
+}
+
+[data-bs-theme="dark"] .settings-theme-option input:checked + span {
+   color: color-mix(in srgb, var(--bs-primary) 45%, #ffffff);
+}
+
+[data-bs-theme="dark"] .notif-card:hover {
+   box-shadow: var(--app-shadow-md);
+}
+
+[data-bs-theme="dark"] .trash-row-critical td {
+   background: rgba(239, 68, 68, .08);
+}
+
+/* Autenticação — textos auxiliares com contraste suficiente */
+[data-bs-theme="dark"] .auth-input .form-control::placeholder {
+   color: var(--app-text-subtle);
+}
+
+[data-bs-theme="dark"] .auth-privacy {
+   color: var(--app-muted);
+}
+
+/* FullCalendar — cores coerentes com o tema */
+.fc {
+   --fc-border-color: var(--app-border);
+   --fc-page-bg-color: var(--app-surface);
+   --fc-neutral-bg-color: var(--app-surface-2);
+   --fc-neutral-text-color: var(--app-text);
+   --fc-today-bg-color: var(--app-primary-soft);
+   --fc-list-event-hover-bg-color: var(--app-hover);
+   --fc-event-bg-color: var(--bs-primary);
+   --fc-event-border-color: var(--bs-primary);
+   --fc-event-text-color: var(--bs-primary-text, #ffffff);
+   color: var(--app-text);
+}
+
+.fc .fc-toolbar-title,
+.fc .fc-col-header-cell-cushion,
+.fc .fc-daygrid-day-number,
+.fc .fc-list-day-text,
+.fc .fc-list-day-side-text {
+   color: var(--app-text);
+}
+
+.fc .fc-button-primary {
+   color: var(--bs-primary-text, #ffffff);
+   background-color: var(--bs-primary);
+   border-color: var(--bs-primary);
+}

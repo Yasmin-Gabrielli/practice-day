@@ -111,7 +111,25 @@ $hasData = $stats['tempo_estudado'] > 0 || $stats['tarefas_concluidas'] > 0;
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const rawData = <?= json_encode($stats['grafico']) ?>;
-    
+    const themeStyles = getComputedStyle(document.documentElement);
+    const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+    const primary = (themeStyles.getPropertyValue('--bs-primary') || '#2563eb').trim();
+    const textColor = (themeStyles.getPropertyValue('--app-text') || (isDark ? '#e5eaf2' : '#1e293b')).trim();
+    const gridColor = (themeStyles.getPropertyValue('--app-border') || (isDark ? '#2f3a4b' : '#e2e8f0')).trim();
+
+    function withAlpha(hex, alpha) {
+        const match = /^#([0-9a-f]{6})$/i.exec(hex);
+        if (!match) return hex;
+        const value = match[1];
+        const r = parseInt(value.slice(0, 2), 16);
+        const g = parseInt(value.slice(2, 4), 16);
+        const b = parseInt(value.slice(4, 6), 16);
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+
+    Chart.defaults.color = textColor;
+    Chart.defaults.borderColor = gridColor;
+
     const labels = rawData.map(item => {
         // Format label depending on currentFilter (hour vs date)
         if ('<?= $currentFilter ?>' === 'dia') {
@@ -139,8 +157,8 @@ document.addEventListener('DOMContentLoaded', function() {
             datasets: [{
                 label: 'Minutos Estudados',
                 data: values,
-                backgroundColor: 'rgba(13, 110, 253, 0.7)',
-                borderColor: 'rgba(13, 110, 253, 1)',
+                backgroundColor: withAlpha(primary, 0.7),
+                borderColor: primary,
                 borderWidth: 1,
                 borderRadius: 4
             }]

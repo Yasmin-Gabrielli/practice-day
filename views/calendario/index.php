@@ -109,7 +109,7 @@ require dirname(__DIR__) . '/layouts/header.php';
                 <input type="hidden" name="_csrf_token" value="<?= htmlspecialchars((string)$csrfToken, ENT_QUOTES, 'UTF-8') ?>">
                 <div class="modal-header border-bottom-0 pb-0">
                     <h5 class="modal-title fw-bold" id="event-form-title">Novo Evento</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
@@ -176,7 +176,7 @@ require dirname(__DIR__) . '/layouts/header.php';
         <div class="modal-content border-0 shadow">
             <div class="modal-header border-bottom-0 pb-0">
                 <h5 class="modal-title fw-bold" id="view-evt-title">...</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
             </div>
             <div class="modal-body">
                 <p id="view-evt-desc" class="text-muted mb-4"></p>

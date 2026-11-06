@@ -1,12 +1,8 @@
+/* ============================================================
+   Os tokens de tema (cores, superfícies, bordas e estados)
+   ficam centralizados em assets/css/theme.css.
+   ============================================================ */
 :root {
-   --bs-primary: #2563eb;
-   --bs-primary-rgb: 37, 99, 235;
-   --app-accent-secondary: #ffffff;
-   --app-border: #e8edf4;
-   --app-muted: #718096;
-   --app-surface: #ffffff;
-   --app-surface-muted: #f6f8fb;
-   --app-text: #1f2937;
    --sidebar-width: 264px;
    --app-font-scale: 1;
 }
@@ -258,14 +254,6 @@
 [data-bs-theme="dark"] .sidebar-profile {
    background: #252d3d;
    color: #e2e8f0;
-}
-
-[data-bs-theme="dark"] {
-   --app-border: #2b3544;
-   --app-muted: #94a3b8;
-   --app-surface: #1e2430;
-   --app-surface-muted: #171c26;
-   --app-text: #e2e8f0;
 }
 
 [data-bs-theme="dark"] .app-body {

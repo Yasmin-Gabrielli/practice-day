@@ -27,8 +27,8 @@
     border-radius: 0.5rem;
 }
 .task-dropzone.drag-over {
-    background-color: rgba(13, 110, 253, 0.08) !important;
-    border-color: #0d6efd !important;
+    background-color: var(--app-primary-soft) !important;
+    border-color: var(--bs-primary) !important;
 }
 </style>
 
@@ -78,7 +78,7 @@
                 <?php $colunas = ['a_fazer' => 'A Fazer', 'em_andamento' => 'Em Andamento', 'concluido' => 'Concluído']; ?>
                 <?php foreach ($colunas as $statusKey => $statusTitle): ?>
                     <div class="col-12 col-lg-4">
-                        <div class="card border-0 shadow-sm h-100 bg-light">
+                        <div class="card border-0 shadow-sm h-100 planner-column">
                             <div class="card-header bg-transparent border-0 pt-4 pb-2 px-4">
                                 <h5 class="mb-0 fw-bold"><?php echo $statusTitle ?></h5>
                             </div>
@@ -103,7 +103,7 @@
                                                         ?>
                                                         <span class="badge rounded-pill <?php echo $badgeClass ?>"><?php echo ucfirst($task['prioridade']) ?></span>
                                                         <div class="dropdown">
-                                                            <button class="btn btn-sm btn-link text-muted p-0" type="button" data-bs-toggle="dropdown">
+                                                            <button class="btn btn-sm btn-link text-muted p-0" type="button" data-bs-toggle="dropdown" aria-label="Mais opções da tarefa" title="Mais opções">
                                                                 <i class="bi bi-three-dots-vertical"></i>
                                                             </button>
                                                             <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
@@ -148,7 +148,7 @@
                                         <?php endif; ?>
                                     <?php endforeach; ?>
                                     <?php if ($tasksCount === 0): ?>
-                                        <div class="text-center text-muted p-4 border border-dashed rounded-3 bg-white bg-opacity-50 empty-tasks-msg">
+                                        <div class="text-center text-muted p-4 rounded-3 empty-tasks-msg planner-empty-state">
                                             Nenhuma tarefa
                                         </div>
                                     <?php endif; ?>
@@ -171,7 +171,7 @@
                 <input type="hidden" name="_csrf_token" value="<?php echo htmlspecialchars((string)$csrfToken, ENT_QUOTES, 'UTF-8') ?>">
                 <div class="modal-header border-bottom-0 pb-0">
                     <h5 class="modal-title fw-bold">Nova Tarefa</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
@@ -241,7 +241,7 @@
                 <input type="hidden" name="_csrf_token" value="<?php echo htmlspecialchars((string)$csrfToken, ENT_QUOTES, 'UTF-8') ?>">
                 <div class="modal-header border-bottom-0 pb-0">
                     <h5 class="modal-title fw-bold">Editar Tarefa</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
@@ -309,7 +309,7 @@
         <div class="modal-content border-0 shadow">
             <div class="modal-header border-bottom-0 pb-0">
                 <h5 class="modal-title fw-bold" id="view-task-title">...</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
             </div>
             <div class="modal-body">
                 <div class="row">
@@ -492,7 +492,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (emptyMsgInZone) emptyMsgInZone.remove();
 
             if (oldZone.querySelectorAll('.task-card').length === 0) {
-                oldZone.innerHTML = '<div class="text-center text-muted p-4 border border-dashed rounded-3 bg-white bg-opacity-50 empty-tasks-msg">Nenhuma tarefa</div>';
+                oldZone.innerHTML = '<div class="text-center text-muted p-4 rounded-3 empty-tasks-msg planner-empty-state">Nenhuma tarefa</div>';
             }
 
             // 2. Dispara a atualização silenciosa no banco via Fetch
@@ -550,7 +550,7 @@ function renderTaskModal(task) {
                 <div class="d-flex align-items-center justify-content-between mb-2 checklist-row" data-item-id="${itemId}">
                     <div class="d-flex align-items-center gap-2">
                         <input class="form-check-input mt-0 js-checklist-toggle" type="checkbox"
-                               data-item-id="${itemId}" data-next-status="${nextStatus}" ${isChecked}>
+                               data-item-id="${itemId}" data-next-status="${nextStatus}" aria-label="${escapeHtml(item.descricao)}" ${isChecked}>
                         <span class="${textClass} js-checklist-label">${escapeHtml(item.descricao)}</span>
                     </div>
                     <button type="button" class="btn btn-sm text-danger p-0 js-checklist-delete" data-item-id="${itemId}" title="Remover item">
@@ -579,7 +579,7 @@ function renderTaskModal(task) {
                     <div class="d-flex align-items-center justify-content-between mb-2 p-2 border rounded-3 js-anexo-row" data-anexo-id="${anexoId}">
                         <div class="d-flex align-items-center gap-2 text-truncate">
                             <a href="${viewUrl}" target="_blank" rel="noopener" title="Abrir imagem">
-                                <img src="${serveUrl}" alt="${fileName}" style="width:48px;height:48px;object-fit:cover;border-radius:6px;border:1px solid #dee2e6;">
+                                <img src="${serveUrl}" alt="${fileName}" style="width:48px;height:48px;object-fit:cover;border-radius:6px;border:1px solid var(--app-border);">
                             </a>
                             <a href="${viewUrl}" target="_blank" rel="noopener" class="text-decoration-none text-truncate small" title="${fileName}">
                                 ${fileName}

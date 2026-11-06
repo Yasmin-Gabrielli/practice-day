@@ -251,7 +251,7 @@ require dirname(__DIR__) . '/layouts/header.php';
                             ?>
                             <div class="folder-card" data-search-text="<?= htmlspecialchars($folder['nome'] . ' ' . ($folder['disciplina_nome'] ?? ''), ENT_QUOTES, 'UTF-8') ?>">
                                 <a class="d-flex align-items-center gap-2 text-decoration-none text-dark flex-grow-1 min-w-0" href="<?= Url::to('/arquivos?pasta=' . rawurlencode($folder['id'])) ?>">
-                                    <span class="folder-card-icon" style="background: color-mix(in srgb, <?= htmlspecialchars($fColor, ENT_QUOTES, 'UTF-8') ?> 15%, white); color: <?= htmlspecialchars($fColor, ENT_QUOTES, 'UTF-8') ?>;">
+                                    <span class="folder-card-icon" style="--tag-color: <?= htmlspecialchars($fColor, ENT_QUOTES, 'UTF-8') ?>;">
                                         <i class="bi bi-folder-fill"></i>
                                     </span>
                                     <div class="folder-card-info">
@@ -434,7 +434,7 @@ require dirname(__DIR__) . '/layouts/header.php';
                                 <!-- Tags do Arquivo -->
                                 <div class="file-card-tags">
                                     <?php foreach (($file['tags'] ?? []) as $t): ?>
-                                        <span class="file-tag" style="background: color-mix(in srgb, <?= htmlspecialchars($t['cor'], ENT_QUOTES, 'UTF-8') ?> 15%, white); color: <?= htmlspecialchars($t['cor'], ENT_QUOTES, 'UTF-8') ?>;">
+                                        <span class="file-tag" style="--tag-color: <?= htmlspecialchars($t['cor'], ENT_QUOTES, 'UTF-8') ?>;">
                                             <i style="background: <?= htmlspecialchars($t['cor'], ENT_QUOTES, 'UTF-8') ?>"></i><?= htmlspecialchars($t['nome'], ENT_QUOTES, 'UTF-8') ?>
                                         </span>
                                     <?php endforeach; ?>
@@ -556,7 +556,7 @@ require dirname(__DIR__) . '/layouts/header.php';
                                                         </strong>
                                                         <div class="file-col-tags">
                                                             <?php foreach (($file['tags'] ?? []) as $t): ?>
-                                                                <span class="file-tag" style="background: color-mix(in srgb, <?= htmlspecialchars($t['cor'], ENT_QUOTES, 'UTF-8') ?> 15%, white); color: <?= htmlspecialchars($t['cor'], ENT_QUOTES, 'UTF-8') ?>;">
+                                                                <span class="file-tag" style="--tag-color: <?= htmlspecialchars($t['cor'], ENT_QUOTES, 'UTF-8') ?>;">
                                                                     <i style="background: <?= htmlspecialchars($t['cor'], ENT_QUOTES, 'UTF-8') ?>"></i><?= htmlspecialchars($t['nome'], ENT_QUOTES, 'UTF-8') ?>
                                                                 </span>
                                                             <?php endforeach; ?>

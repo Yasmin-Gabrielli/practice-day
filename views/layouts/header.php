@@ -12,6 +12,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="<?php echo \App\Helpers\Url::asset('assets/css/app.css') ?>" rel="stylesheet">
+    <link href="<?php echo \App\Helpers\Url::asset('assets/css/theme.css') ?>" rel="stylesheet">
     <?php
         $settings    = \App\Helpers\UserTheme::settings();
         $primary     = preg_match('/^#[0-9a-fA-F]{6}$/', (string) ($settings['cor_primaria'] ?? '')) ? (string) $settings['cor_primaria'] : '#2563eb';

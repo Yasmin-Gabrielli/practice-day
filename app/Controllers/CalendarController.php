@@ -8,6 +8,7 @@ use App\Exceptions\AuthenticationException;
 use App\Exceptions\ValidationException;
 use App\Helpers\Csrf;
 use App\Helpers\Flash;
+use App\Helpers\UserTheme;
 use App\Middleware\AuthenticationMiddleware;
 use App\Services\CalendarService;
 
@@ -69,25 +70,33 @@ final class CalendarController extends Controller
 
             $out = [];
             foreach ($events as $e) {
+                $color = is_string($e['disciplina_cor'] ?? null) && preg_match('/^#[0-9a-fA-F]{6}$/', $e['disciplina_cor'])
+                    ? $e['disciplina_cor']
+                    : '#4f46e5';
                 $out[] = [
                     'id' => 'evt_' . $e['id'],
                     'real_id' => $e['id'],
                     'title' => $e['titulo'],
                     'start' => $e['data_inicio'],
                     'end' => $e['data_fim'],
-                    'color' => $e['disciplina_cor'] ?? '#4f46e5',
+                    'color' => $color,
+                    'textColor' => UserTheme::primaryTextColor($color),
                     'tipo' => $e['tipo'],
                     'is_task' => false
                 ];
             }
             foreach ($tasks as $t) {
+                $color = is_string($t['disciplina_cor'] ?? null) && preg_match('/^#[0-9a-fA-F]{6}$/', $t['disciplina_cor'])
+                    ? $t['disciplina_cor']
+                    : '#6c757d';
                 $out[] = [
                     'id' => 'tsk_' . $t['id'],
                     'real_id' => $t['id'],
                     'title' => '[Tarefa] ' . $t['titulo'],
                     'start' => $t['data_vencimento'],
                     'end' => $t['data_vencimento'],
-                    'color' => $t['disciplina_cor'] ?? '#6c757d',
+                    'color' => $color,
+                    'textColor' => UserTheme::primaryTextColor($color),
                     'tipo' => 'tarefa',
                     'is_task' => true
                 ];
