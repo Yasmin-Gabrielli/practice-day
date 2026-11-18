@@ -1,5 +1,6 @@
 <?php
 use App\Helpers\Url;
+use App\Services\BookCoverService;
 
 $errors = $feedback['errors'] ?? [];
 $success = $feedback['success'] ?? null;
@@ -54,6 +55,17 @@ $getFileIcon = static function (?string $ext): string {
 $isViewable = static function (?string $ext): bool {
     return in_array(strtolower((string) $ext), ['pdf', 'epub', 'txt', 'png', 'jpg', 'jpeg', 'docx'], true);
 };
+
+/* Tipos que conseguem exibir uma prévia visual (capa real, gerada ou
+   placeholder com título). PDFs e EPUBs têm detecção automática de capa. */
+$hasCover = static function (?string $ext): bool {
+    return in_array(strtolower((string) $ext), ['pdf', 'epub', 'png', 'jpg', 'jpeg', 'webp', 'txt', 'docx'], true);
+};
+
+$coverUrlFor = static fn (string $id): string => Url::to('/arquivos/' . rawurlencode($id) . '/capa');
+$serveUrlFor = static fn (string $id): string => Url::to('/arquivos/' . rawurlencode($id) . '/servir');
+
+$extraStyles = [Url::asset('assets/css/file-viewer.css')];
 
 require dirname(__DIR__) . '/layouts/header.php';
 ?>
@@ -406,9 +418,26 @@ require dirname(__DIR__) . '/layouts/header.php';
                                     <?php endif; ?>
                                 </div>
 
-                                <div class="file-card-visual <?= $typeClass ?>">
-                                    <i class="bi <?= $iconName ?>"></i>
-                                </div>
+                                <?php if ($hasCover($file['extensao'])): ?>
+                                    <?php $fileIsPdf = strtolower((string) $file['extensao']) === 'pdf'; ?>
+                                    <div class="file-card-cover <?= $typeClass ?>">
+                                        <span class="file-cover-type"><?= htmlspecialchars(strtoupper((string) $file['extensao']), ENT_QUOTES, 'UTF-8') ?></span>
+                                        <img src="<?= htmlspecialchars($coverUrlFor($file['id']), ENT_QUOTES, 'UTF-8') ?>"
+                                             alt="Prévia de <?= htmlspecialchars($file['nome_original'], ENT_QUOTES, 'UTF-8') ?>"
+                                             loading="lazy" decoding="async"
+                                             <?php if ($fileIsPdf): ?>
+                                                 data-pdf-cover
+                                                 data-cover-cached="<?= BookCoverService::isCached((string) $file['id']) ? '1' : '0' ?>"
+                                                 data-file-url="<?= htmlspecialchars($serveUrlFor($file['id']), ENT_QUOTES, 'UTF-8') ?>"
+                                                 data-cover-url="<?= htmlspecialchars($coverUrlFor($file['id']), ENT_QUOTES, 'UTF-8') ?>"
+                                                 data-save-url="<?= htmlspecialchars($coverUrlFor($file['id']), ENT_QUOTES, 'UTF-8') ?>"
+                                             <?php endif; ?>>
+                                    </div>
+                                <?php else: ?>
+                                    <div class="file-card-visual <?= $typeClass ?>" aria-hidden="true">
+                                        <i class="bi <?= $iconName ?>"></i>
+                                    </div>
+                                <?php endif; ?>
 
                                 <strong class="file-card-title" title="<?= htmlspecialchars($file['nome_original'], ENT_QUOTES, 'UTF-8') ?>">
                                     <?= htmlspecialchars($file['nome_original'], ENT_QUOTES, 'UTF-8') ?>
@@ -547,9 +576,25 @@ require dirname(__DIR__) . '/layouts/header.php';
                                         <tr data-search-text="<?= htmlspecialchars($file['nome_original'] . ' ' . $file['extensao'] . ' ' . ($file['disciplina_nome'] ?? '') . ' ' . ($file['pasta_nome'] ?? ''), ENT_QUOTES, 'UTF-8') ?>">
                                             <td>
                                                 <div class="file-col-name">
-                                                    <span class="file-col-icon <?= $typeClass ?>">
-                                                        <i class="bi <?= $iconName ?>"></i>
-                                                    </span>
+                                                    <?php if ($hasCover($file['extensao'])): ?>
+                                                        <?php $fileIsPdfList = strtolower((string) $file['extensao']) === 'pdf'; ?>
+                                                        <span class="file-col-thumb <?= $typeClass ?>">
+                                                            <img src="<?= htmlspecialchars($coverUrlFor($file['id']), ENT_QUOTES, 'UTF-8') ?>"
+                                                                 alt=""
+                                                                 loading="lazy" decoding="async"
+                                                                 <?php if ($fileIsPdfList): ?>
+                                                                     data-pdf-cover
+                                                                     data-cover-cached="<?= BookCoverService::isCached((string) $file['id']) ? '1' : '0' ?>"
+                                                                     data-file-url="<?= htmlspecialchars($serveUrlFor($file['id']), ENT_QUOTES, 'UTF-8') ?>"
+                                                                     data-cover-url="<?= htmlspecialchars($coverUrlFor($file['id']), ENT_QUOTES, 'UTF-8') ?>"
+                                                                     data-save-url="<?= htmlspecialchars($coverUrlFor($file['id']), ENT_QUOTES, 'UTF-8') ?>"
+                                                                 <?php endif; ?>>
+                                                        </span>
+                                                    <?php else: ?>
+                                                        <span class="file-col-icon <?= $typeClass ?>" aria-hidden="true">
+                                                            <i class="bi <?= $iconName ?>"></i>
+                                                        </span>
+                                                    <?php endif; ?>
                                                     <div class="file-name-text">
                                                         <strong title="<?= htmlspecialchars($file['nome_original'], ENT_QUOTES, 'UTF-8') ?>">
                                                             <?= htmlspecialchars($file['nome_original'], ENT_QUOTES, 'UTF-8') ?>

@@ -6,6 +6,9 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <?php if (!empty($csrfToken)): ?>
+        <meta name="csrf-token" content="<?php echo htmlspecialchars((string) $csrfToken, ENT_QUOTES, 'UTF-8') ?>">
+    <?php endif; ?>
     <title><?php echo htmlspecialchars($title ?? 'PracticeDay', ENT_QUOTES, 'UTF-8') ?></title>
     <link rel="icon" type="image/svg+xml" href="<?php echo \App\Helpers\Url::asset('assets/images/logos-practice-day/logo-practice-day.ico') ?>">
     <link rel="shortcut icon" href="<?php echo \App\Helpers\Url::asset('assets/images/logos-practice-day/logo-practice-day.ico') ?>">
@@ -13,6 +16,9 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="<?php echo \App\Helpers\Url::asset('assets/css/app.css') ?>" rel="stylesheet">
     <link href="<?php echo \App\Helpers\Url::asset('assets/css/theme.css') ?>" rel="stylesheet">
+    <?php foreach ((array) ($extraStyles ?? []) as $styleHref): ?>
+        <link href="<?php echo htmlspecialchars((string) $styleHref, ENT_QUOTES, 'UTF-8') ?>" rel="stylesheet">
+    <?php endforeach; ?>
     <?php
         $settings    = \App\Helpers\UserTheme::settings();
         $primary     = preg_match('/^#[0-9a-fA-F]{6}$/', (string) ($settings['cor_primaria'] ?? '')) ? (string) $settings['cor_primaria'] : '#2563eb';

@@ -92,4 +92,33 @@ final class ScannerRepository extends Repository
         $page = $statement->fetch(PDO::FETCH_ASSOC);
         return is_array($page) ? $page : null;
     }
+
+    /**
+     * Páginas agrupadas por digitalização, na ordem correta.
+     *
+     * @param list<string> $scanIds
+     * @return array<string, list<array<string,mixed>>>
+     */
+    public function pagesByScans(array $scanIds): array
+    {
+        if ($scanIds === []) {
+            return [];
+        }
+
+        $placeholders = implode(',', array_fill(0, count($scanIds), '?'));
+        $statement = $this->db->prepare(
+            'SELECT id, digitalizacao_id, numero_pagina, caminho_imagem, criado_em
+             FROM paginas_digitalizacao
+             WHERE digitalizacao_id IN (' . $placeholders . ')
+             ORDER BY numero_pagina ASC, criado_em ASC'
+        );
+        $statement->execute(array_values($scanIds));
+
+        $grouped = [];
+        foreach ($statement->fetchAll(PDO::FETCH_ASSOC) ?: [] as $page) {
+            $grouped[(string) $page['digitalizacao_id']][] = $page;
+        }
+
+        return $grouped;
+    }
 }

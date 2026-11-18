@@ -23,8 +23,10 @@ final class ScannerService extends Service
     {
         $scans = $this->scans->scans($userId);
         $texts = $this->scans->ocrTexts($userId);
+        $pages = $this->scans->pagesByScans(array_map(static fn (array $scan): string => (string) $scan['id'], $scans));
         foreach ($scans as &$scan) {
             $scan['texto_ocr'] = $texts[(string) $scan['id']] ?? '';
+            $scan['paginas'] = $pages[(string) $scan['id']] ?? [];
         }
         unset($scan);
         return $scans;

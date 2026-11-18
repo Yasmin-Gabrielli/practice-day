@@ -1,15 +1,245 @@
 <?php
 use App\Helpers\Url;
+
 $errors = $feedback['errors'] ?? [];
+$success = $feedback['success'] ?? null;
+
+$pageImageUrl = static fn (string $pageId): string => Url::to('/scanner/paginas/' . rawurlencode($pageId) . '/imagem');
+
+$extraStyles = [Url::asset('assets/css/file-viewer.css')];
+
 require dirname(__DIR__) . '/layouts/header.php';
 ?>
-<div class="app-shell"><?php require dirname(__DIR__) . '/layouts/sidebar.php'; ?><div class="app-content"><?php require dirname(__DIR__) . '/layouts/navbar.php'; ?><main class="page-content scanner-page">
-<section class="page-heading"><div><p class="eyebrow">Documentos físicos</p><h1>Câmera</h1><p>Capture páginas pela câmera ou selecione imagens do seu computador.</p></div><button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#scan-modal"><i class="bi bi-camera me-1"></i>Nova digitalização</button></section>
-<?php if (isset($feedback['success'])): ?><div class="alert alert-success border-0 shadow-sm"><?= htmlspecialchars((string) $feedback['success'], ENT_QUOTES, 'UTF-8') ?></div><?php endif; ?>
-<?php if ($errors !== []): ?><div class="alert alert-danger border-0 shadow-sm"><?php foreach ($errors as $error): ?><div><?= htmlspecialchars((string) $error, ENT_QUOTES, 'UTF-8') ?></div><?php endforeach; ?></div><?php endif; ?>
+<div class="app-shell">
+    <?php require dirname(__DIR__) . '/layouts/sidebar.php'; ?>
 
-<?php if ($scans === []): ?><div class="card border-0 shadow-sm"><div class="card-body text-center py-5 text-muted"><i class="bi bi-camera fs-1 d-block mb-3"></i><strong class="d-block text-dark">Nenhuma digitalização</strong><span>Abra a câmera para capturar seu primeiro documento.</span></div></div><?php else: ?><div class="row g-4"><?php foreach ($scans as $scan): ?><div class="col-12 col-md-6 col-xl-4"><article class="card border-0 shadow-sm h-100"><div class="card-body p-4"><div class="d-flex align-items-start gap-3"><span class="note-icon"><i class="bi bi-file-earmark-image"></i></span><div class="min-w-0"><h2 class="h6 fw-bold text-truncate mb-1"><?= htmlspecialchars((string) $scan['titulo'], ENT_QUOTES, 'UTF-8') ?></h2><p class="small text-muted mb-2"><?= htmlspecialchars((string) ($scan['disciplina_nome'] ?? 'Sem disciplina'), ENT_QUOTES, 'UTF-8') ?></p><span class="badge text-bg-light border"><?= (int) $scan['total_paginas'] ?> página(s)</span></div></div><div class="small text-muted mt-3"><i class="bi bi-clock-history me-1"></i><?= date('d/m/Y H:i', strtotime($scan['criado_em'])) ?></div><form method="post" action="<?= Url::to('/scanner/' . rawurlencode((string) $scan['id']) . '/excluir') ?>" class="mt-3" onsubmit="return confirm('Excluir esta digitalização? As imagens e o texto reconhecido serão removidos.');"><input type="hidden" name="_csrf_token" value="<?= htmlspecialchars((string) $csrfToken, ENT_QUOTES, 'UTF-8') ?>"><button class="btn btn-outline-danger btn-sm w-100" type="submit"><i class="bi bi-trash me-1"></i>Excluir</button></form></div></article></div><?php endforeach; ?></div><?php endif; ?>
-</main></div></div><?php require dirname(__DIR__) . '/layouts/mobile-navigation.php'; ?>
-<div class="modal fade" id="scan-modal" tabindex="-1"><div class="modal-dialog modal-xl modal-dialog-scrollable"><form id="scan-form" class="modal-content border-0 shadow" method="post" action="<?= Url::to('/scanner') ?>" enctype="multipart/form-data"><input type="hidden" name="_csrf_token" value="<?= htmlspecialchars((string) $csrfToken, ENT_QUOTES, 'UTF-8') ?>"><div class="modal-header border-0"><h2 class="modal-title fs-5">Nova digitalização</h2><button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Fechar"></button></div><div class="modal-body"><div class="row g-3 mb-4"><div class="col-md-6"><label class="form-label">Título</label><input name="titulo" class="form-control" required placeholder="Ex.: Anotações de cálculo"></div><div class="col-md-4"><label class="form-label">Disciplina</label><select name="disciplina_id" class="form-select"><option value="">Sem disciplina</option><?php foreach ($disciplines as $discipline): ?><option value="<?= htmlspecialchars((string) $discipline['id'], ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars((string) $discipline['nome'], ENT_QUOTES, 'UTF-8') ?></option><?php endforeach; ?></select></div></div><div class="row g-3"><div class="col-lg-7"><div class="border rounded-3 p-3 bg-light"><video id="camera-preview" class="w-100 rounded bg-dark" autoplay playsinline muted style="max-height:360px"></video><canvas id="capture-canvas" class="d-none"></canvas><div class="d-flex flex-wrap gap-2 mt-3"><button type="button" class="btn btn-outline-primary" id="open-camera"><i class="bi bi-camera-video me-1"></i>Abrir câmera</button><button type="button" class="btn btn-primary" id="capture-page" disabled><i class="bi bi-camera me-1"></i>Capturar imagem</button><label class="btn btn-light border mb-0"><i class="bi bi-images me-1"></i>Selecionar imagens<input id="image-files" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden></label></div><p class="small text-muted mb-0 mt-3">A câmera depende da permissão do navegador e de uma origem segura (localhost ou HTTPS).</p></div></div><div class="col-lg-5"><h3 class="h6 fw-bold">Páginas</h3><div id="captured-pages" class="d-flex flex-column gap-2"><p class="text-muted small mb-0" id="empty-pages">Nenhuma página adicionada.</p></div></div></div></div><div class="modal-footer border-0"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button><button type="submit" class="btn btn-primary" id="save-scan" disabled>Salvar digitalização</button></div></form></div></div>
-<script>document.addEventListener('DOMContentLoaded',()=>{const video=document.getElementById('camera-preview'),canvas=document.getElementById('capture-canvas'),pages=document.getElementById('captured-pages'),save=document.getElementById('save-scan'),capture=document.getElementById('capture-page');let stream;function add(file){const row=document.createElement('div');row.className='d-flex gap-2 align-items-center border rounded p-2 bg-white';const img=document.createElement('img');img.src=URL.createObjectURL(file);img.width=52;img.height=52;img.className='object-fit-cover rounded';const text=document.createElement('span');text.className='small flex-grow-1 text-truncate';text.textContent=file.name;const up=document.createElement('button');up.type='button';up.className='btn btn-sm btn-light';up.innerHTML='<i class="bi bi-arrow-up"></i>';up.onclick=()=>{if(row.previousElementSibling)pages.insertBefore(row,row.previousElementSibling)};const down=document.createElement('button');down.type='button';down.className='btn btn-sm btn-light';down.innerHTML='<i class="bi bi-arrow-down"></i>';down.onclick=()=>{if(row.nextElementSibling)pages.insertBefore(row.nextElementSibling,row)};const del=document.createElement('button');del.type='button';del.className='btn btn-sm btn-outline-danger';del.innerHTML='<i class="bi bi-trash"></i>';del.onclick=()=>{row.remove();save.disabled=!pages.querySelector('input')};const input=document.createElement('input');input.type='file';input.name='paginas[]';input.hidden=true;const dt=new DataTransfer();dt.items.add(file);input.files=dt.files;row.append(img,text,up,down,del,input);document.getElementById('empty-pages')?.remove();pages.append(row);save.disabled=false;}document.getElementById('open-camera').onclick=async()=>{try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:3840},height:{ideal:2160}},audio:false});video.srcObject=stream;capture.disabled=false;}catch(e){alert('Não foi possível abrir a câmera. Selecione imagens ou verifique a permissão do navegador.')}};capture.onclick=()=>{if(!video.videoWidth)return;canvas.width=video.videoWidth;canvas.height=video.videoHeight;canvas.getContext('2d').drawImage(video,0,0);canvas.toBlob(blob=>add(new File([blob],`captura-${Date.now()}.jpg`,{type:'image/jpeg'})),'image/jpeg',.92)};document.getElementById('image-files').onchange=e=>[...e.target.files].forEach(add);document.getElementById('scan-modal').addEventListener('hidden.bs.modal',()=>stream?.getTracks().forEach(t=>t.stop()));});</script>
+    <div class="app-content">
+        <?php require dirname(__DIR__) . '/layouts/navbar.php'; ?>
+
+        <main class="page-content scanner-page">
+            <section class="page-heading scan-hero">
+                <div>
+                    <p class="eyebrow">Documentos físicos</p>
+                    <h1>Câmera</h1>
+                    <p>Fotografe páginas com a câmera traseira, revise as capturas e salve tudo como uma digitalização organizada.</p>
+                </div>
+                <a class="btn btn-primary d-inline-flex align-items-center gap-2" href="#scan-studio" data-camera-open>
+                    <i class="bi bi-camera" aria-hidden="true"></i><span>Abrir câmera</span>
+                </a>
+            </section>
+
+            <?php if ($success !== null): ?>
+                <div class="alert alert-success border-0 shadow-sm d-flex align-items-center gap-2" role="status">
+                    <i class="bi bi-check-circle-fill text-success" aria-hidden="true"></i>
+                    <span><?= htmlspecialchars((string) $success, ENT_QUOTES, 'UTF-8') ?></span>
+                </div>
+            <?php endif; ?>
+
+            <?php if ($errors !== []): ?>
+                <div class="alert alert-danger border-0 shadow-sm" role="alert">
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <i class="bi bi-exclamation-triangle-fill text-danger" aria-hidden="true"></i>
+                        <strong>Não foi possível salvar a digitalização:</strong>
+                    </div>
+                    <ul class="mb-0 ps-3">
+                        <?php foreach ($errors as $error): ?>
+                            <li><?= htmlspecialchars((string) $error, ENT_QUOTES, 'UTF-8') ?></li>
+                        <?php endforeach; ?>
+                    </ul>
+                </div>
+            <?php endif; ?>
+
+            <div class="scan-grid">
+                <section class="scan-studio" id="scan-studio" aria-labelledby="scan-studio-title">
+                    <header class="scan-studio-head">
+                        <div>
+                            <h2 id="scan-studio-title"><i class="bi bi-camera-video me-1 text-primary" aria-hidden="true"></i>Estúdio de captura</h2>
+                            <p>Enquadre a página inteira e mantenha o documento bem iluminado.</p>
+                        </div>
+                        <span class="badge text-bg-light border" data-camera-state>Desligada</span>
+                    </header>
+
+                    <div class="scan-stage" data-scan-stage>
+                        <video class="scan-video" data-camera-video autoplay playsinline muted hidden aria-label="Prévia da câmera"></video>
+                        <div class="scan-stage-placeholder" data-camera-placeholder>
+                            <i class="bi bi-camera-video-off" aria-hidden="true"></i>
+                            <p>Abra a câmera para capturar páginas do seu material. Em celulares usamos a câmera traseira por padrão.</p>
+                        </div>
+                        <div class="scan-flash" data-scan-flash aria-hidden="true"></div>
+                        <span class="scan-status" data-camera-status hidden>Pronta para capturar</span>
+                    </div>
+
+                    <p class="scan-error" data-scan-error role="alert" hidden></p>
+
+                    <div class="scan-controls">
+                        <button class="btn btn-outline-primary" type="button" data-camera-open>
+                            <i class="bi bi-camera-video" aria-hidden="true"></i> Abrir câmera
+                        </button>
+                        <button class="scan-shutter" type="button" data-camera-capture disabled>
+                            <i class="bi bi-camera-fill" aria-hidden="true"></i> Capturar página
+                        </button>
+                        <button class="btn btn-light border" type="button" data-camera-flip title="Alternar entre câmera frontal e traseira">
+                            <i class="bi bi-arrow-repeat" aria-hidden="true"></i> Virar câmera
+                        </button>
+                        <label class="btn btn-light border mb-0">
+                            <i class="bi bi-images" aria-hidden="true"></i> Selecionar imagens
+                            <input type="file" accept="image/jpeg,image/png,image/webp" multiple hidden data-camera-files>
+                        </label>
+                        <button class="btn btn-outline-secondary ms-auto" type="button" data-camera-stop disabled>
+                            <i class="bi bi-stop-circle" aria-hidden="true"></i> Desligar
+                        </button>
+                    </div>
+
+                    <p class="scan-hint">
+                        Dica: no celular, mantenha o aparelho na vertical para páginas retrato. A captura espera o foco da câmera antes de fotografar.
+                    </p>
+                </section>
+
+                <section class="scan-form-card" aria-labelledby="scan-form-title">
+                    <form method="post" action="<?= Url::to('/scanner') ?>" enctype="multipart/form-data" data-scan-form>
+                        <input type="hidden" name="_csrf_token" value="<?= htmlspecialchars((string) $csrfToken, ENT_QUOTES, 'UTF-8') ?>">
+
+                        <header class="scan-form-head">
+                            <div>
+                                <h2 id="scan-form-title">Salvar digitalização</h2>
+                                <p>Dê um nome e escolha a disciplina do material.</p>
+                            </div>
+                            <span class="badge text-bg-primary" data-scan-count>0 páginas</span>
+                        </header>
+
+                        <div class="scan-form-grid">
+                            <label class="scan-field" for="scan-title">
+                                Título
+                                <input id="scan-title" name="titulo" maxlength="255" required placeholder="Ex.: Anotações de cálculo — capítulo 3">
+                            </label>
+
+                            <label class="scan-field" for="scan-discipline">
+                                Disciplina
+                                <select id="scan-discipline" name="disciplina_id">
+                                    <option value="">Sem disciplina</option>
+                                    <?php foreach ($disciplines as $discipline): ?>
+                                        <option value="<?= htmlspecialchars((string) $discipline['id'], ENT_QUOTES, 'UTF-8') ?>">
+                                            <?= htmlspecialchars((string) $discipline['nome'], ENT_QUOTES, 'UTF-8') ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </label>
+                        </div>
+
+                        <div class="scan-thumbs-wrap">
+                            <div class="scan-thumbs-head">
+                                <span>Páginas capturadas</span>
+                                <button class="btn btn-sm btn-link text-decoration-none p-0" type="button" data-scan-clear hidden>Limpar tudo</button>
+                            </div>
+                            <div class="scan-thumbs" data-scan-thumbs></div>
+                            <p class="scan-empty" data-scan-empty>
+                                <i class="bi bi-camera me-1" aria-hidden="true"></i>
+                                Nenhuma página ainda. Capture pela câmera ou selecione imagens do computador.
+                            </p>
+                        </div>
+
+                        <div class="scan-form-actions">
+                            <button class="btn btn-primary d-inline-flex align-items-center gap-2" type="submit" data-scan-submit disabled>
+                                <i class="bi bi-cloud-arrow-up" aria-hidden="true"></i> Salvar digitalização
+                            </button>
+                            <button class="btn btn-light border" type="reset" data-scan-reset>Cancelar</button>
+                        </div>
+                    </form>
+                </section>
+            </div>
+
+            <section class="scan-gallery" aria-labelledby="scan-gallery-title">
+                <div class="scan-gallery-head">
+                    <h2 id="scan-gallery-title">Digitalizações salvas</h2>
+                    <span class="text-muted small"><?= count($scans) ?> documento(s)</span>
+                </div>
+
+                <?php if ($scans === []): ?>
+                    <div class="empty-module-state">
+                        <span><i class="bi bi-camera text-primary" aria-hidden="true"></i></span>
+                        <h2>Nenhuma digitalização</h2>
+                        <p>Abra a câmera acima para capturar seu primeiro documento.</p>
+                    </div>
+                <?php else: ?>
+                    <div class="scan-gallery-grid">
+                        <?php foreach ($scans as $scan): ?>
+                            <?php
+                            $pages = is_array($scan['paginas'] ?? null) ? $scan['paginas'] : [];
+                            $firstPage = $pages[0] ?? null;
+                            $totalPages = max((int) ($scan['total_paginas'] ?? 0), count($pages));
+                            ?>
+                            <article class="scan-card">
+                                <div class="scan-card-cover">
+                                    <?php if ($firstPage !== null): ?>
+                                        <img src="<?= htmlspecialchars($pageImageUrl((string) $firstPage['id']), ENT_QUOTES, 'UTF-8') ?>"
+                                             alt="Primeira página de <?= htmlspecialchars((string) $scan['titulo'], ENT_QUOTES, 'UTF-8') ?>"
+                                             loading="lazy" decoding="async">
+                                    <?php else: ?>
+                                        <div class="scan-stage-placeholder">
+                                            <i class="bi bi-file-earmark-image" aria-hidden="true"></i>
+                                            <p>Sem prévia disponível</p>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+
+                                <div class="scan-card-body">
+                                    <h3 title="<?= htmlspecialchars((string) $scan['titulo'], ENT_QUOTES, 'UTF-8') ?>">
+                                        <?= htmlspecialchars((string) $scan['titulo'], ENT_QUOTES, 'UTF-8') ?>
+                                    </h3>
+                                    <div class="scan-card-meta">
+                                        <span><i class="bi bi-mortarboard me-1 text-primary" aria-hidden="true"></i><?= htmlspecialchars((string) ($scan['disciplina_nome'] ?? 'Sem disciplina'), ENT_QUOTES, 'UTF-8') ?></span>
+                                        <span><i class="bi bi-files me-1" aria-hidden="true"></i><?= $totalPages ?> página(s)</span>
+                                        <span><i class="bi bi-clock-history me-1" aria-hidden="true"></i><?= date('d/m/Y H:i', strtotime((string) $scan['criado_em'])) ?></span>
+                                    </div>
+                                </div>
+
+                                <?php if ($pages !== []): ?>
+                                    <div class="scan-card-pages" aria-label="Páginas de <?= htmlspecialchars((string) $scan['titulo'], ENT_QUOTES, 'UTF-8') ?>">
+                                        <?php foreach ($pages as $page): ?>
+                                            <button class="scan-page-thumb" type="button"
+                                                    data-scan-page-preview
+                                                    data-page-url="<?= htmlspecialchars($pageImageUrl((string) $page['id']), ENT_QUOTES, 'UTF-8') ?>"
+                                                    data-page-label="<?= htmlspecialchars((string) $scan['titulo'] . ' — página ' . (int) $page['numero_pagina'], ENT_QUOTES, 'UTF-8') ?>"
+                                                    title="Ampliar página <?= (int) $page['numero_pagina'] ?>">
+                                                <img src="<?= htmlspecialchars($pageImageUrl((string) $page['id']), ENT_QUOTES, 'UTF-8') ?>"
+                                                     alt="Página <?= (int) $page['numero_pagina'] ?>"
+                                                     loading="lazy" decoding="async">
+                                            </button>
+                                        <?php endforeach; ?>
+                                    </div>
+                                <?php endif; ?>
+
+                                <footer class="scan-card-footer">
+                                    <span class="small text-muted"><?= $totalPages ?> página(s)</span>
+                                    <form method="post" action="<?= Url::to('/scanner/' . rawurlencode((string) $scan['id']) . '/excluir') ?>" class="m-0"
+                                          onsubmit="return confirm('Excluir esta digitalização? As imagens e o texto reconhecido serão removidos.');">
+                                        <input type="hidden" name="_csrf_token" value="<?= htmlspecialchars((string) $csrfToken, ENT_QUOTES, 'UTF-8') ?>">
+                                        <button class="btn btn-sm btn-outline-danger" type="submit">
+                                            <i class="bi bi-trash" aria-hidden="true"></i> Excluir
+                                        </button>
+                                    </form>
+                                </footer>
+                            </article>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+            </section>
+        </main>
+    </div>
+</div>
+
+<?php require dirname(__DIR__) . '/layouts/mobile-navigation.php'; ?>
+
+<dialog class="scan-page-dialog" data-scan-page-dialog aria-labelledby="scan-page-dialog-title">
+    <div class="d-flex align-items-center justify-content-between gap-3 mb-2">
+        <h2 class="h6 mb-0" id="scan-page-dialog-title" data-scan-page-dialog-title>Página digitalizada</h2>
+        <button class="btn btn-sm btn-light border" type="button" data-scan-page-dialog-close aria-label="Fechar prévia">
+            <i class="bi bi-x-lg" aria-hidden="true"></i>
+        </button>
+    </div>
+    <img alt="" data-scan-page-dialog-image>
+</dialog>
+
+<script src="<?= Url::asset('assets/js/camera-capture.js') ?>"></script>
+
 <?php require dirname(__DIR__) . '/layouts/footer.php'; ?>

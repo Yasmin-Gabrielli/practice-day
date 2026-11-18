@@ -2,6 +2,8 @@
 node_modules/
 /storage/uploads/*
 !/storage/uploads/.gitkeep
+/storage/covers/*
+!/storage/covers/.gitkeep
 /storage/scanner/*
 !/storage/scanner/.gitkeep
 /storage/documentos/*

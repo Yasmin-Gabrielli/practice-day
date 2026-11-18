@@ -10,6 +10,7 @@ use App\Helpers\Csrf;
 use App\Helpers\Url;
 use App\Middleware\AuthenticationMiddleware;
 use App\Repositories\FileViewerRepository;
+use App\Services\BookCoverService;
 use App\Services\FileViewerService;
 
 final class FileViewController extends Controller
@@ -109,6 +110,8 @@ final class FileViewController extends Controller
             'serveUrl'    => Url::to('/arquivos/' . rawurlencode($id) . '/servir'),
             'downloadUrl' => Url::to('/arquivos/' . rawurlencode($id) . '/download'),
             'backUrl'     => Url::to('/arquivos'),
+            'coverUrl'    => Url::to('/arquivos/' . rawurlencode($id) . '/capa'),
+            'coverCached' => BookCoverService::isCached($id),
             'library'     => $libraryData,
             'libraryApi'  => $libraryData !== null ? [
                 'progresso' => Url::to('/arquivos/biblioteca/' . rawurlencode((string) $libraryData['id']) . '/progresso'),
@@ -171,6 +174,112 @@ final class FileViewController extends Controller
     }
 
     /**
+     * GET /arquivos/{id}/capa
+     * Entrega a capa detectada (EPUB), a capa em cache (PDF) ou uma
+     * capa gerada com o título do material.
+     */
+    public function cover(string $id): never
+    {
+        $this->auth();
+
+        $service = new FileViewerService($this->config);
+        $file = null;
+        $path = null;
+
+        try {
+            $result = $service->serveFile($this->u(), $id);
+            $file = $result['file'];
+            $path = $result['path'];
+        } catch (NotFoundException) {
+            // Mantém o placeholder; a capa nunca quebra a listagem.
+        }
+
+        $coverService = new BookCoverService($this->config);
+        $cover = ($file !== null && $path !== null) ? $coverService->getCover($file, $path) : null;
+
+        while (ob_get_level() > 0) {
+            ob_end_clean();
+        }
+
+        if ($cover !== null && is_file($cover['path'])) {
+            header('Content-Type: ' . $cover['mime']);
+            header('Content-Length: ' . (string) filesize($cover['path']));
+            header('Content-Disposition: inline; filename="capa.' . $cover['ext'] . '"');
+            header('Cache-Control: private, max-age=86400');
+            header('ETag: "' . md5_file($cover['path']) . '"');
+            header('X-Content-Type-Options: nosniff');
+            header('X-Cover-State: ready');
+            readfile($cover['path']);
+            exit;
+        }
+
+        $title = $file !== null ? (string) ($file['nome_original'] ?? 'Material de estudo') : 'Material de estudo';
+        $ext = $file !== null ? strtolower((string) ($file['extensao'] ?? 'file')) : 'file';
+        $svg = $coverService->placeholderSvg($title, $ext);
+
+        header('Content-Type: image/svg+xml; charset=utf-8');
+        header('Content-Length: ' . (string) strlen($svg));
+        header('Cache-Control: no-store, max-age=0');
+        header('X-Content-Type-Options: nosniff');
+        header('X-Cover-State: placeholder');
+        header('X-Cover-Needs-Render: ' . ($ext === 'pdf' ? '1' : '0'));
+        echo $svg;
+        exit;
+    }
+
+    /**
+     * POST /arquivos/{id}/capa
+     * Recebe a primeira página de um PDF renderizada pelo navegador e a
+     * guarda como capa em cache. Evita depender de Ghostscript/Imagick.
+     */
+    public function saveCover(string $id): never
+    {
+        $this->auth();
+        header('Content-Type: application/json; charset=utf-8');
+
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['ok' => false, 'error' => 'Método não permitido.']);
+            exit;
+        }
+
+        try {
+            Csrf::validate($_POST);
+        } catch (\Throwable) {
+            http_response_code(403);
+            echo json_encode(['ok' => false, 'error' => 'Token CSRF inválido.']);
+            exit;
+        }
+
+        $service = new FileViewerService($this->config);
+
+        try {
+            $file = $service->getViewableFile($this->u(), $id);
+        } catch (NotFoundException $e) {
+            http_response_code(404);
+            echo json_encode(['ok' => false, 'error' => $e->getMessage()]);
+            exit;
+        }
+
+        if (strtolower((string) ($file['extensao'] ?? '')) !== 'pdf') {
+            http_response_code(422);
+            echo json_encode(['ok' => false, 'error' => 'Apenas PDFs podem gerar capa pelo navegador.']);
+            exit;
+        }
+
+        $saved = (new BookCoverService($this->config))->saveDataUrl($id, (string) ($_POST['imagem'] ?? ''));
+
+        if ($saved === null) {
+            http_response_code(422);
+            echo json_encode(['ok' => false, 'error' => 'Imagem de capa inválida.']);
+            exit;
+        }
+
+        echo json_encode(['ok' => true, 'capa' => Url::to('/arquivos/' . rawurlencode($id) . '/capa')]);
+        exit;
+    }
+
+    /**
      * GET /arquivos/visualizar/{id}/epub
      * Leitor de EPUB integrado ao modulo Biblioteca.
      */
@@ -214,6 +323,8 @@ final class FileViewController extends Controller
             'serveUrl'    => Url::to('/arquivos/' . rawurlencode($id) . '/servir'),
             'downloadUrl' => Url::to('/arquivos/' . rawurlencode($id) . '/download'),
             'backUrl'     => Url::to('/arquivos'),
+            'coverUrl'    => Url::to('/arquivos/' . rawurlencode($id) . '/capa'),
+            'coverCached' => BookCoverService::isCached($id),
             'libraryApi'  => [
                 'progresso'  => Url::to('/arquivos/biblioteca/' . rawurlencode((string) $libraryData['id']) . '/progresso'),
                 'marcadores' => Url::to('/arquivos/biblioteca/' . rawurlencode((string) $libraryData['id']) . '/marcadores'),
