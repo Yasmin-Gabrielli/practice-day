@@ -113,11 +113,11 @@ mysql -u root -p < "sql-banco/practice_day (1).sql"
 
 ### Se você já tem dados na máquina antiga
 
-Os arquivos enviados pelos usuários **não ficam no GitHub**, pois a pasta `storage` é ignorada pelo Git. Para levar também os anexos, avatares e digitalizações:
+Os anexos (`storage/uploads`) e os avatares/papéis de parede (`storage/users`) **agora fazem parte do repositório** e já vêm no clone. Os demais diretórios de `storage` continuam locais:
 
 1. Importe o dump do banco na máquina nova.
-2. Copie o conteúdo de `storage/uploads`, `storage/scanner`, `storage/documentos` e `storage/users` da máquina antiga para as mesmas pastas na máquina nova.
-3. Não é necessário copiar `storage/sessions`, pois são sessões temporárias.
+2. Copie `storage/covers`, `storage/scanner` e `storage/documentos` da máquina antiga apenas se houver arquivos gerados localmente.
+3. Não é necessário copiar `storage/uploads` nem `storage/users`, pois já estão no GitHub. Também não é necessário copiar `storage/sessions`, pois são sessões temporárias.
 
 Se o banco da máquina antiga estiver mais atualizado que o dump do repositório, gere um novo dump antes de transferir:
 
@@ -345,7 +345,8 @@ A senha do usuário presente no dump não é divulgada. Crie uma conta nova pela
 ## Segurança
 
 - Nunca envie o arquivo `.env` para o GitHub.
-- Não envie a pasta `storage` com dados de usuários.
+- `storage/uploads` e `storage/users` são versionados: revise os anexos e avatares antes de publicar, pois ficarão públicos no repositório.
+- `storage/covers`, `storage/scanner`, `storage/documentos` e `storage/sessions` permanecem ignorados pelo Git.
 - Em produção, use:
 
 ```env

@@ -1,7 +1,5 @@
 .env
 node_modules/
-/storage/uploads/*
-!/storage/uploads/.gitkeep
 /storage/covers/*
 !/storage/covers/.gitkeep
 /storage/scanner/*
@@ -10,6 +8,3 @@ node_modules/
 !/storage/documentos/.gitkeep
 /storage/sessions/*
 !/storage/sessions/.gitkeep
-
-/storage/users/*
-!/storage/users/.gitkeep
