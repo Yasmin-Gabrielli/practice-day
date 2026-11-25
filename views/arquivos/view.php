@@ -273,14 +273,18 @@ require dirname(__DIR__) . '/layouts/header.php';
                 </div>
 
                 <footer class="reader-footer">
-                    <div class="reader-progress" role="progressbar" aria-label="Progresso de leitura" aria-valuemin="0" aria-valuemax="100" aria-valuenow="<?= (int) round($initialPercent) ?>" data-reader-progress>
-                        <span class="reader-progress-bar" data-reader-progress-bar style="width: <?= max(0, min(100, $initialPercent)) ?>%"></span>
-                    </div>
+                    <?php if ($viewerType !== 'image'): ?>
+                        <div class="reader-progress" role="progressbar" aria-label="Progresso de leitura" aria-valuemin="0" aria-valuemax="100" aria-valuenow="<?= (int) round($initialPercent) ?>" data-reader-progress>
+                            <span class="reader-progress-bar" data-reader-progress-bar style="width: <?= max(0, min(100, $initialPercent)) ?>%"></span>
+                        </div>
+                    <?php endif; ?>
                     <p class="reader-status" data-reader-status aria-live="polite">
                         <?php if ($viewerType === 'pdf'): ?>
                             Página <?= $initialPage ?><?= $totalPages > 0 ? ' de ' . $totalPages : '' ?>
                         <?php elseif ($viewerType === 'epub'): ?>
                             Preparando leitura…
+                        <?php elseif ($viewerType === 'image'): ?>
+                            Imagem pronta para visualização
                         <?php else: ?>
                             Pronto para ler
                         <?php endif; ?>
@@ -311,9 +315,13 @@ require dirname(__DIR__) . '/layouts/header.php';
 <dialog class="reader-dialog" id="reader-shortcuts-dialog" aria-labelledby="reader-shortcuts-title">
     <h2 id="reader-shortcuts-title">Atalhos de teclado</h2>
     <ul class="reader-shortcuts-list">
-        <li><kbd>←</kbd> <kbd>→</kbd><span>Página anterior / próxima</span></li>
-        <li><kbd>Page Up</kbd> <kbd>Page Down</kbd><span>Navegar por páginas</span></li>
-        <li><kbd>Home</kbd> <kbd>End</kbd><span>Primeira / última página</span></li>
+        <?php if ($viewerType === 'pdf' || $viewerType === 'epub'): ?>
+            <li><kbd>←</kbd> <kbd>→</kbd><span>Página anterior / próxima</span></li>
+            <li><kbd>Page Up</kbd> <kbd>Page Down</kbd><span>Navegar por páginas</span></li>
+            <li><kbd>Home</kbd> <kbd>End</kbd><span>Primeira / última página</span></li>
+        <?php elseif ($viewerType === 'image'): ?>
+            <li><kbd>←</kbd> <kbd>↑</kbd> <kbd>↓</kbd> <kbd>→</kbd><span>Mover a imagem</span></li>
+        <?php endif; ?>
         <li><kbd>+</kbd> <kbd>-</kbd><span>Ampliar / reduzir</span></li>
         <li><kbd>F</kbd><span>Tela cheia</span></li>
         <li><kbd>T</kbd><span>Alternar tema de leitura</span></li>

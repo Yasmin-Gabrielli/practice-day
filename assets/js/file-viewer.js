@@ -1076,7 +1076,8 @@
     renderBookmarks();
     initPdf();
   } else if (type === 'image') {
-    updateProgressUi(100, 'Imagem pronta para leitura');
+    // Imagem não tem páginas nem progresso de leitura: apenas informa que está pronta.
+    if (statusLabel) statusLabel.textContent = 'Imagem pronta para visualização';
   } else if (type === 'txt' || type === 'docx') {
     updateProgressUi(0, 'Documento pronto para leitura');
   }
