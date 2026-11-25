@@ -120,6 +120,9 @@ CREATE TABLE `biblioteca` (
   `pagina_atual` int(11) DEFAULT 1,
   `total_paginas` int(11) NOT NULL,
   `progresso_porcentagem` decimal(5,2) DEFAULT 0.00,
+  `cfi` text DEFAULT NULL,
+  `posicao_scroll` int(11) NOT NULL DEFAULT 0,
+  `zoom` decimal(5,2) NOT NULL DEFAULT 1.00,
   `ultimo_acesso` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

@@ -337,11 +337,15 @@
   const beaconProgress = () => {
     if (!api.progresso || !state.book) return;
     const seconds = Math.min(180, Math.round((Date.now() - state.sessionStart) / 1000));
+    let cfi = state.cfi || '';
+    try {
+      cfi = state.rendition?.currentLocation?.()?.start?.cfi || cfi;
+    } catch (_) { /* usa a última posição conhecida */ }
     const body = new URLSearchParams({
       _csrf_token: cfg.csrfToken || '',
       pagina_atual: String(Math.max(1, Math.round(state.percent))),
       progresso_porcentagem: String(Math.round(state.percent * 10) / 10),
-      cfi: state.cfi || '',
+      cfi,
       tempo_leitura_segundos: String(seconds),
       paginas_lidas_sessao: '0',
     });

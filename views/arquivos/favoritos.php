@@ -1,4 +1,5 @@
 ﻿<?php
+use App\Helpers\FileDisplay;
 use App\Helpers\Url;
 
 $errors  = $feedback['errors'] ?? [];
@@ -161,7 +162,7 @@ require dirname(__DIR__) . '/layouts/header.php';
                     <?php foreach ($files as $f): ?>
                         <?php
                             $ext  = strtolower((string) ($f['extensao'] ?? ''));
-                            $nome = htmlspecialchars((string) $f['nome_original'], ENT_QUOTES, 'UTF-8');
+                            $nome = htmlspecialchars(FileDisplay::name($f['nome_original'] ?? null, $ext), ENT_QUOTES, 'UTF-8');
                         ?>
                         <div class="col-12 col-sm-6 col-md-4 col-xl-3">
                             <div class="card border-0 shadow-sm h-100 file-card position-relative">
@@ -229,7 +230,7 @@ require dirname(__DIR__) . '/layouts/header.php';
                                 <?php foreach ($files as $f): ?>
                                     <?php
                                         $ext  = strtolower((string)($f['extensao'] ?? ''));
-                                        $nome = htmlspecialchars((string)$f['nome_original'], ENT_QUOTES, 'UTF-8');
+                                        $nome = htmlspecialchars(FileDisplay::name($f['nome_original'] ?? null, $ext), ENT_QUOTES, 'UTF-8');
                                     ?>
                                     <tr>
                                         <td>

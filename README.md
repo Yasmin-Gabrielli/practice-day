@@ -369,3 +369,15 @@ git pull origin main
 ```
 
 Se houver alterações no banco, importe ou execute as migrations indicadas na pasta `sql-banco/migrations`.
+
+Para a versão com posição exata de leitura, execute:
+
+```powershell
+cmd /c '"C:\xampp\mysql\bin\mysql.exe" -u root practice_day < "sql-banco\migrations\20261125_add_reading_position_to_biblioteca.sql"'
+```
+
+Essa migration cria as colunas `cfi`, `posicao_scroll` e `zoom` em `biblioteca` e aproveita as posições antigas que estavam em marcadores ocultos.
+
+Com ela, EPUBs voltam exatamente no CFI salvo e PDFs voltam na página, no deslocamento dentro da página e no zoom usados antes de sair.
+
+Os nomes dos arquivos são exibidos sem a extensão nas listagens, na biblioteca, na busca e no leitor. O nome completo continua salvo no banco e é usado normalmente para download, histórico e busca; ao renomear, digite apenas o nome desejado que a extensão original é mantida automaticamente.

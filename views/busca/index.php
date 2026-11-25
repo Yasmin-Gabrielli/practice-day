@@ -1,4 +1,5 @@
 <?php
+use App\Helpers\FileDisplay;
 use App\Helpers\Url;
 require dirname(__DIR__) . '/layouts/header.php';
 $q = (string) ($query ?? '');
@@ -41,7 +42,7 @@ $total = count($res['files']) + count($res['disciplines']) + count($res['notes']
                         <?php foreach ($res['files'] as $f): ?>
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 <a href="<?= Url::to('/arquivos/visualizar/' . rawurlencode((string) $f['id'])) ?>" class="text-decoration-none">
-                                    <i class="bi bi-file-earmark me-2"></i><?= htmlspecialchars((string) $f['nome_original'], ENT_QUOTES, 'UTF-8') ?>
+                                    <i class="bi bi-file-earmark me-2"></i><?= htmlspecialchars(FileDisplay::name($f['nome_original'] ?? null, $f['extensao'] ?? null), ENT_QUOTES, 'UTF-8') ?>
                                 </a>
                                 <small class="text-muted"><?= htmlspecialchars((string) ($f['disciplina_nome'] ?? 'Sem disciplina'), ENT_QUOTES, 'UTF-8') ?></small>
                             </li>

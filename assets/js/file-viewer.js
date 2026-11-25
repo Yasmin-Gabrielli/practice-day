@@ -281,14 +281,12 @@
     }).then((response) => response.json()).catch(() => null);
   };
 
-  const scheduleProgress = (percent, page, total) => {
+  const scheduleProgress = () => {
     if (!api.progresso) return;
     window.clearTimeout(progressTimer);
     progressTimer = window.setTimeout(() => {
       postForm(api.progresso, {
-        pagina_atual: String(page),
-        total_paginas: String(total || 0),
-        progresso_porcentagem: String(Math.round(percent * 100) / 100),
+        ...progressFields(),
         tempo_leitura_segundos: '0',
         paginas_lidas_sessao: '1',
       });
@@ -300,9 +298,7 @@
     const seconds = Math.min(180, Math.round((Date.now() - sessionStart) / 1000));
     const body = new URLSearchParams({
       _csrf_token: cfg.csrfToken || '',
-      pagina_atual: String(state.page || 1),
-      total_paginas: String(state.total || 0),
-      progresso_porcentagem: String(Math.round((state.percent || 0) * 100) / 100),
+      ...progressFields(),
       tempo_leitura_segundos: String(seconds),
       paginas_lidas_sessao: '0',
     });
@@ -314,9 +310,7 @@
   window.setInterval(() => {
     if (!api.progresso || !state.page) return;
     postForm(api.progresso, {
-      pagina_atual: String(state.page),
-      total_paginas: String(state.total || 0),
-      progresso_porcentagem: String(Math.round((state.percent || 0) * 100) / 100),
+      ...progressFields(),
       tempo_leitura_segundos: '20',
       paginas_lidas_sessao: '0',
     });
@@ -332,9 +326,12 @@
   // PDF
   // ---------------------------------------------------------------------
 
+  const savedScrollOffset = Math.max(0, Number(cfg.library && cfg.library.posicao_scroll) || 0);
+  let restoringPosition = true;
+
   const pdf = {
     doc: null,
-    zoom: 1,
+    zoom: Math.min(4, Math.max(0.5, Number(cfg.library && cfg.library.zoom) || 1)),
     rotation: 0,
     flow: prefs.flow,
     rendered: new Set(),
@@ -353,6 +350,34 @@
   const totalLabel = document.querySelector('[data-pdf-total]');
   const flowButton = document.querySelector('[data-reader-flow-toggle]');
   const flowSelect = document.querySelector('[data-reader-flow-select]');
+
+  function currentPageElement() {
+    return pdfPages ? pdfPages.querySelector('[data-page="' + state.page + '"]') : null;
+  }
+
+  // Guardamos o deslocamento relativo à página atual, não o scrollTop absoluto:
+  // assim a posição sobrevive a mudanças de altura entre páginas e zoom.
+  function scrollOffsetForCurrentPage() {
+    if (!pdfScroll) return savedScrollOffset;
+    const el = currentPageElement();
+    const base = el ? Math.max(0, Number(el.offsetTop) || 0) : 0;
+    return Math.max(0, Math.round(Number(pdfScroll.scrollTop) - base));
+  }
+
+  function progressFields() {
+    return {
+      pagina_atual: String(state.page || 1),
+      total_paginas: String(state.total || 0),
+      progresso_porcentagem: String(Math.round((state.percent || 0) * 100) / 100),
+      posicao_scroll: String(scrollOffsetForCurrentPage()),
+      zoom: String(pdf.zoom || 1),
+    };
+  }
+
+  pdfScroll?.addEventListener('scroll', () => {
+    if (type !== 'pdf' || !pdf.ready || !api.progresso) return;
+    scheduleProgress();
+  }, { passive: true });
 
   const pdfCanvasFilter = () => {
     if (prefs.theme === 'sepia') return 'sepia(.28) saturate(.92) brightness(.98)';
@@ -419,7 +444,9 @@
     if (totalLabel) totalLabel.textContent = total > 0 ? String(total) : '—';
     updateProgressUi(state.percent, total > 0 ? 'Página ' + state.page + ' de ' + total : 'Página ' + state.page);
 
-    if (scroll && pdf.flow === 'paged') pdfScroll?.scrollTo({ top: 0, behavior: 'smooth' });
+    if (scroll && pdf.flow === 'paged' && !restoringPosition) {
+      pdfScroll?.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   const createCanvas = async (page, scale) => {
@@ -525,7 +552,7 @@
         if (pageNumber && pageNumber !== state.page) {
           state.page = pageNumber;
           updatePdfUi(false);
-          scheduleProgress(state.percent, state.page, state.total);
+          scheduleProgress();
         }
       }
     }, { root: pdfScroll, threshold: [0, 0.35, 0.6, 0.9] });
@@ -575,7 +602,19 @@
     if (options.announce !== false) {
       announce('Página ' + target + ' de ' + total + '.');
     }
-    scheduleProgress(state.percent, state.page, total);
+    scheduleProgress();
+  };
+
+  const restorePdfScroll = () => {
+    if (!pdfScroll) return;
+    const el = currentPageElement();
+    const base = el ? Math.max(0, Number(el.offsetTop) || 0) : 0;
+    const top = Math.max(0, base + savedScrollOffset);
+    window.requestAnimationFrame(() => {
+      pdfScroll.scrollTop = top;
+      // Uma segunda frame garante que o layout da página renderizada já foi aplicado.
+      window.requestAnimationFrame(() => { pdfScroll.scrollTop = top; });
+    });
   };
 
   const showPdfError = (message) => {
@@ -597,6 +636,7 @@
       renderPaged();
     }
     announce('Zoom ' + Math.round(pdf.zoom * 100) + '%.');
+    scheduleProgress();
   };
 
   const initPdf = () => {
@@ -611,7 +651,7 @@
     updateFlowUi();
 
     pdfjsLib.getDocument({ url: cfg.serveUrl, withCredentials: true }).promise
-      .then((document) => {
+      .then(async (document) => {
         pdf.doc = document;
         pdf.ready = true;
         const start = Math.max(1, Math.min(document.numPages, Number(state.page) || 1));
@@ -625,8 +665,15 @@
         document.querySelectorAll('[data-reader-prev]').forEach((button) => { button.disabled = false; });
         document.querySelectorAll('[data-reader-next]').forEach((button) => { button.disabled = false; });
 
-        if (pdf.flow === 'scroll') rebuildScroll();
-        else renderPaged();
+        if (pdf.flow === 'scroll') {
+          rebuildScroll();
+          const startPage = pdfPages ? pdfPages.querySelector('[data-page="' + start + '"]') : null;
+          if (startPage) await renderScrollPage(startPage);
+        } else {
+          await renderPaged();
+        }
+        restorePdfScroll();
+        window.requestAnimationFrame(() => { restoringPosition = false; });
 
         if (pdfLoading) pdfLoading.classList.add('d-none');
         if (pdfError) pdfError.classList.add('d-none');

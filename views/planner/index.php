@@ -1,4 +1,5 @@
 <?php
+    use App\Helpers\FileDisplay;
     use App\Helpers\Url;
 
     $errors  = $feedback['errors'] ?? [];
@@ -332,7 +333,7 @@
                                 <option value="">Selecionar arquivo...</option>
                                 <?php foreach ($files as $f): ?>
                                     <option value="<?php echo htmlspecialchars((string)$f['id'], ENT_QUOTES, 'UTF-8') ?>">
-                                        <?php echo htmlspecialchars((string)$f['nome_original'], ENT_QUOTES, 'UTF-8') ?>
+                                        <?php echo htmlspecialchars(FileDisplay::name($f['nome_original'] ?? null, $f['extensao'] ?? null), ENT_QUOTES, 'UTF-8') ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>
@@ -392,6 +393,16 @@ function escapeHtml(str) {
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;');
+}
+
+function displayFileName(name, ext) {
+    const original = String(name || '');
+    const extension = String(ext || '').toLowerCase();
+    if (!extension) return original;
+    const suffix = '.' + extension;
+    return original.length > suffix.length && original.toLowerCase().endsWith(suffix)
+        ? original.slice(0, -suffix.length)
+        : original;
 }
 
 const CSRF_TOKEN = '<?php echo htmlspecialchars((string)$csrfToken, ENT_QUOTES, 'UTF-8') ?>';
@@ -569,7 +580,7 @@ function renderTaskModal(task) {
         task.anexos.forEach(anexo => {
             const anexoId = encodeURIComponent(anexo.id);
             const fileId = encodeURIComponent(anexo.arquivo_id || '');
-            const fileName = escapeHtml(anexo.nome_original || 'Arquivo');
+            const fileName = escapeHtml(displayFileName(anexo.nome_original, anexo.extensao) || 'Arquivo');
             const isImage = /\\.(png|jpe?g|gif|webp)$/i.test(anexo.nome_original || '');
             const serveUrl = '<?php echo Url::to('/arquivos/') ?>' + (anexo.arquivo_id || '') + '/servir';
             const viewUrl = '<?php echo Url::to('/arquivos/visualizar/') ?>' + (anexo.arquivo_id || '');

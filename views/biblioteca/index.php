@@ -1,4 +1,5 @@
 <?php
+use App\Helpers\FileDisplay;
 use App\Helpers\Url;
 use App\Services\BookCoverService;
 
@@ -66,13 +67,14 @@ require dirname(__DIR__) . '/layouts/header.php';
                         $totalPages = (int) ($book['total_paginas'] ?? 0);
                         $readerUrl = Url::to('/arquivos/visualizar/' . rawurlencode($bookId));
                         $started = $percent > 0 || $totalPages > 0;
+                        $nomeExibicao = FileDisplay::name($book['nome_original'] ?? null, $ext);
                         ?>
                         <li class="col-12 col-sm-6 col-lg-4 col-xxl-3">
                             <article class="card border-0 shadow-sm h-100 library-book">
-                                <a class="library-cover" href="<?= $readerUrl ?>" aria-label="Ler <?= htmlspecialchars((string) $book['nome_original'], ENT_QUOTES, 'UTF-8') ?>">
+                                <a class="library-cover" href="<?= $readerUrl ?>" aria-label="Ler <?= htmlspecialchars($nomeExibicao, ENT_QUOTES, 'UTF-8') ?>">
                                     <span class="library-cover-badge"><?= htmlspecialchars(strtoupper($ext), ENT_QUOTES, 'UTF-8') ?></span>
                                     <img src="<?= htmlspecialchars($coverUrlFor($bookId), ENT_QUOTES, 'UTF-8') ?>"
-                                         alt="Capa de <?= htmlspecialchars((string) $book['nome_original'], ENT_QUOTES, 'UTF-8') ?>"
+                                         alt="Capa de <?= htmlspecialchars($nomeExibicao, ENT_QUOTES, 'UTF-8') ?>"
                                          loading="lazy" decoding="async"
                                          <?php if ($isPdf): ?>
                                              data-pdf-cover
@@ -88,8 +90,8 @@ require dirname(__DIR__) . '/layouts/header.php';
                                         <i class="bi bi-mortarboard me-1 text-primary" aria-hidden="true"></i>
                                         <?= htmlspecialchars((string) ($book['disciplina_nome'] ?? 'Sem disciplina'), ENT_QUOTES, 'UTF-8') ?>
                                     </p>
-                                    <h2 class="h6 fw-bold mb-2" title="<?= htmlspecialchars((string) $book['nome_original'], ENT_QUOTES, 'UTF-8') ?>">
-                                        <?= htmlspecialchars((string) $book['nome_original'], ENT_QUOTES, 'UTF-8') ?>
+                                    <h2 class="h6 fw-bold mb-2" title="<?= htmlspecialchars($nomeExibicao, ENT_QUOTES, 'UTF-8') ?>">
+                                        <?= htmlspecialchars($nomeExibicao, ENT_QUOTES, 'UTF-8') ?>
                                     </h2>
 
                                     <div class="library-progress mb-2"
@@ -141,8 +143,9 @@ require dirname(__DIR__) . '/layouts/header.php';
                     <select class="form-select" id="library-file" name="arquivo_id" required>
                         <option value="">Selecione um arquivo</option>
                         <?php foreach ($available as $file): ?>
+                            <?php $nomeExibicao = FileDisplay::name($file['nome_original'] ?? null, $file['extensao'] ?? null); ?>
                             <option value="<?= htmlspecialchars((string) $file['id'], ENT_QUOTES, 'UTF-8') ?>">
-                                <?= htmlspecialchars((string) $file['nome_original'], ENT_QUOTES, 'UTF-8') ?>
+                                <?= htmlspecialchars($nomeExibicao, ENT_QUOTES, 'UTF-8') ?>
                                 (<?= htmlspecialchars(strtoupper((string) $file['extensao']), ENT_QUOTES, 'UTF-8') ?>)
                             </option>
                         <?php endforeach; ?>

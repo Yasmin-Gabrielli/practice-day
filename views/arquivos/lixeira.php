@@ -1,4 +1,5 @@
 ﻿<?php
+use App\Helpers\FileDisplay;
 use App\Helpers\Url;
 
 $errors  = $feedback['errors'] ?? [];
@@ -182,7 +183,7 @@ require dirname(__DIR__) . '/layouts/header.php';
                                 <?php foreach ($files as $f): ?>
                                     <?php
                                         $ext      = strtolower((string)($f['extensao'] ?? ''));
-                                        $nome     = htmlspecialchars((string)$f['nome_original'], ENT_QUOTES, 'UTF-8');
+                                        $nome     = htmlspecialchars(FileDisplay::name($f['nome_original'] ?? null, $ext), ENT_QUOTES, 'UTF-8');
                                         $exclData = !empty($f['excluido_em']) ? date('d/m/Y', strtotime((string)$f['excluido_em'])) : '—';
                                         $expData  = !empty($f['expira_em'])   ? date('d/m/Y', strtotime((string)$f['expira_em']))   : '—';
                                         $days     = $daysUntil(!empty($f['expira_em']) ? (string)$f['expira_em'] : null);

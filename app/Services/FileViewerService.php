@@ -195,12 +195,14 @@ final class FileViewerService extends Service
         $progress = (float) ($payload['progresso_porcentagem'] ?? 0);
         $cfi      = isset($payload['cfi']) ? (string) $payload['cfi'] : null;
         $total    = isset($payload['total_paginas']) ? (int) $payload['total_paginas'] : 0;
+        $scroll   = max(0, (int) ($payload['posicao_scroll'] ?? 0));
+        $zoom     = (float) ($payload['zoom'] ?? 1);
 
         if ($total > 0) {
             $this->viewerRepo->updateTotalPages($libraryId, $total);
         }
 
-        $this->viewerRepo->updateReadingProgress($libraryId, $pagina, $progress, $cfi);
+        $this->viewerRepo->updateReadingProgress($libraryId, $pagina, $progress, $cfi, $scroll, $zoom);
 
         $tempo   = (int) ($payload['tempo_leitura_segundos'] ?? 0);
         $paginas = (int) ($payload['paginas_lidas_sessao'] ?? 0);

@@ -8,7 +8,7 @@ use PDO;
 
 final class FileViewerRepository extends Repository
 {
-    private const LOCATION_MARKER_TITLE = '__cfi__';
+    private const LOCATION_MARKER_PREFIX = '__cfi__';
 
     /**
      * @return array<string,mixed>|null
@@ -66,22 +66,39 @@ final class FileViewerRepository extends Repository
         string $libraryId,
         int $paginaAtual,
         float $progressoPct,
-        ?string $cfi = null
+        ?string $cfi = null,
+        int $posicaoScroll = 0,
+        float $zoom = 1.0
     ): void {
+        $cfi = $cfi !== null ? trim($cfi) : null;
+        if ($cfi !== null && strlen($cfi) > 4000) {
+            $cfi = substr($cfi, 0, 4000);
+        }
+        $hasCfi = $cfi !== null && $cfi !== '';
+
         $sql = 'UPDATE biblioteca
-                SET pagina_atual = :p, progresso_porcentagem = :prog, ultimo_acesso = CURRENT_TIMESTAMP
-                WHERE id = :id';
+                SET pagina_atual = :p,
+                    progresso_porcentagem = :prog,
+                    posicao_scroll = :scroll,
+                    zoom = :zoom,
+                    ultimo_acesso = CURRENT_TIMESTAMP'
+                . ($hasCfi ? ', cfi = :cfi' : '')
+                . ' WHERE id = :id';
+
+        $params = [
+            'p'      => max(1, $paginaAtual),
+            'prog'   => min(100, max(0, $progressoPct)),
+            'scroll' => max(0, $posicaoScroll),
+            'zoom'   => min(4, max(0.5, $zoom)),
+            'id'     => $libraryId,
+        ];
+
+        if ($hasCfi) {
+            $params['cfi'] = $cfi;
+        }
 
         $stmt = $this->db->prepare($sql);
-        $stmt->execute([
-            'p'    => max(1, $paginaAtual),
-            'prog' => min(100, max(0, $progressoPct)),
-            'id'   => $libraryId,
-        ]);
-
-        if ($cfi !== null && $cfi !== '') {
-            $this->upsertLocationCfi($libraryId, $cfi);
-        }
+        $stmt->execute($params);
     }
 
     public function updateTotalPages(string $libraryId, int $totalPages): void
@@ -156,7 +173,9 @@ final class FileViewerRepository extends Repository
             'total_paginas'          => (int) ($library['total_paginas'] ?? 1),
             'progresso_porcentagem'  => (float) ($library['progresso_porcentagem'] ?? 0),
             'ultimo_acesso'          => $library['ultimo_acesso'] ?? null,
-            'cfi'                    => $this->getLocationCfi($libraryId),
+            'cfi'                    => $this->getLocationCfi($library),
+            'posicao_scroll'         => (int) ($library['posicao_scroll'] ?? 0),
+            'zoom'                   => (float) ($library['zoom'] ?? 1),
             'tempo_leitura_segundos' => (int) ($stats['tempo_total'] ?? 0),
             'paginas_lidas_total'    => (int) ($stats['paginas_total'] ?? 0),
         ];
@@ -173,11 +192,11 @@ final class FileViewerRepository extends Repository
 
         $sql = 'SELECT id, numero_pagina, titulo, criado_em
                 FROM marcadores_livro
-                WHERE biblioteca_id = :bid AND titulo NOT LIKE :skip
+                WHERE biblioteca_id = :bid AND LEFT(titulo, 7) <> :prefix
                 ORDER BY numero_pagina ASC, criado_em ASC';
 
         $stmt = $this->db->prepare($sql);
-        $stmt->execute(['bid' => $libraryId, 'skip' => self::LOCATION_MARKER_TITLE . '%']);
+        $stmt->execute(['bid' => $libraryId, 'prefix' => self::LOCATION_MARKER_PREFIX]);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
@@ -259,13 +278,13 @@ final class FileViewerRepository extends Repository
         }
 
         $sql = 'DELETE FROM marcadores_livro
-                WHERE id = :id AND biblioteca_id = :bid AND titulo NOT LIKE :skip';
+                WHERE id = :id AND biblioteca_id = :bid AND LEFT(titulo, 7) <> :prefix';
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute([
-            'id'   => $bookmarkId,
-            'bid'  => $libraryId,
-            'skip' => self::LOCATION_MARKER_TITLE . '%',
+            'id'     => $bookmarkId,
+            'bid'    => $libraryId,
+            'prefix' => self::LOCATION_MARKER_PREFIX,
         ]);
 
         return $stmt->rowCount() > 0;
@@ -367,43 +386,29 @@ final class FileViewerRepository extends Repository
         return $stmt->rowCount() > 0;
     }
 
-    private function upsertLocationCfi(string $libraryId, string $cfi): void
+    /**
+     * Retorna o CFI completo da posição atual.
+     * O fallback ao marcador oculto mantém compatibilidade com bancos que
+     * ainda não receberam a migration da coluna biblioteca.cfi.
+     *
+     * @param array<string,mixed> $library
+     */
+    private function getLocationCfi(array $library): ?string
     {
-        $title = self::LOCATION_MARKER_TITLE . mb_substr($cfi, 0, 140);
-
-        $find = $this->db->prepare(
-            'SELECT id FROM marcadores_livro
-             WHERE biblioteca_id = :bid AND titulo LIKE :prefix LIMIT 1'
-        );
-        $find->execute(['bid' => $libraryId, 'prefix' => self::LOCATION_MARKER_TITLE . '%']);
-        $existing = $find->fetch(PDO::FETCH_ASSOC);
-
-        if (is_array($existing)) {
-            $upd = $this->db->prepare('UPDATE marcadores_livro SET titulo = :t WHERE id = :id');
-            $upd->execute(['t' => $title, 'id' => $existing['id']]);
-
-            return;
+        $cfi = trim((string) ($library['cfi'] ?? ''));
+        if ($cfi !== '') {
+            return $cfi;
         }
 
-        $ins = $this->db->prepare(
-            'INSERT INTO marcadores_livro (id, biblioteca_id, numero_pagina, titulo)
-             VALUES (:id, :bid, 0, :t)'
-        );
-        $ins->execute([
-            'id'  => \App\Helpers\Uuid::v4(),
-            'bid' => $libraryId,
-            't'   => $title,
-        ]);
-    }
-
-    private function getLocationCfi(string $libraryId): ?string
-    {
         $sql = 'SELECT titulo FROM marcadores_livro
-                WHERE biblioteca_id = :bid AND titulo LIKE :prefix
+                WHERE biblioteca_id = :bid AND LEFT(titulo, 7) = :prefix
                 LIMIT 1';
 
         $stmt = $this->db->prepare($sql);
-        $stmt->execute(['bid' => $libraryId, 'prefix' => self::LOCATION_MARKER_TITLE . '%']);
+        $stmt->execute([
+            'bid'    => (string) ($library['id'] ?? ''),
+            'prefix' => self::LOCATION_MARKER_PREFIX,
+        ]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!is_array($row) || !isset($row['titulo'])) {
@@ -411,12 +416,12 @@ final class FileViewerRepository extends Repository
         }
 
         $title = (string) $row['titulo'];
-        if (!str_starts_with($title, self::LOCATION_MARKER_TITLE)) {
+        if (!str_starts_with($title, self::LOCATION_MARKER_PREFIX)) {
             return null;
         }
 
-        $cfi = substr($title, strlen(self::LOCATION_MARKER_TITLE));
+        $legacy = substr($title, strlen(self::LOCATION_MARKER_PREFIX));
 
-        return $cfi !== '' ? $cfi : null;
+        return $legacy !== '' ? $legacy : null;
     }
 }

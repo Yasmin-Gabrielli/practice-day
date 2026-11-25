@@ -7,6 +7,7 @@ namespace App\Controllers;
 use App\Exceptions\AuthenticationException;
 use App\Exceptions\NotFoundException;
 use App\Helpers\Csrf;
+use App\Helpers\FileDisplay;
 use App\Helpers\Url;
 use App\Middleware\AuthenticationMiddleware;
 use App\Repositories\FileViewerRepository;
@@ -98,7 +99,7 @@ final class FileViewController extends Controller
         }
 
         $this->view('arquivos/view', [
-            'title'       => htmlspecialchars($file['nome_original'], ENT_QUOTES, 'UTF-8') . ' | Visualizador | PracticeDay',
+            'title'       => FileDisplay::name($file['nome_original'] ?? null, $file['extensao'] ?? null) . ' | Visualizador | PracticeDay',
             'csrfToken'   => Csrf::token(),
             'userName'    => $_SESSION['user_name'] ?? '',
             'userAvatar'  => $_SESSION['user_avatar'] ?? null,
@@ -213,7 +214,9 @@ final class FileViewController extends Controller
             exit;
         }
 
-        $title = $file !== null ? (string) ($file['nome_original'] ?? 'Material de estudo') : 'Material de estudo';
+        $title = $file !== null
+            ? FileDisplay::name($file['nome_original'] ?? null, $file['extensao'] ?? null)
+            : 'Material de estudo';
         $ext = $file !== null ? strtolower((string) ($file['extensao'] ?? 'file')) : 'file';
         $svg = $coverService->placeholderSvg($title, $ext);
 
@@ -313,7 +316,7 @@ final class FileViewController extends Controller
         $libraryData = $service->getOrCreateLibraryEntry($this->u(), $id, $file);
 
         $this->view('arquivos/view_epub', [
-            'title'       => htmlspecialchars($file['nome_original'], ENT_QUOTES, 'UTF-8') . ' | Leitor EPUB | PracticeDay',
+            'title'       => FileDisplay::name($file['nome_original'] ?? null, $file['extensao'] ?? null) . ' | Leitor EPUB | PracticeDay',
             'csrfToken'   => Csrf::token(),
             'userName'    => $_SESSION['user_name'] ?? '',
             'userAvatar'  => $_SESSION['user_avatar'] ?? null,

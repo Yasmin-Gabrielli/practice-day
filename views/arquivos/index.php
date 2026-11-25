@@ -1,4 +1,5 @@
 <?php
+use App\Helpers\FileDisplay;
 use App\Helpers\Url;
 use App\Services\BookCoverService;
 
@@ -400,6 +401,7 @@ require dirname(__DIR__) . '/layouts/header.php';
                             $iconName = $getFileIcon($file['extensao']);
                             $isFav = !empty($file['favorito_real']) || !empty($file['favorito']);
                             $tagIdsString = implode(',', array_column($file['tags'] ?? [], 'id'));
+                            $nomeExibicao = FileDisplay::name($file['nome_original'] ?? null, $file['extensao'] ?? null);
                             ?>
                             <article class="file-card" data-search-text="<?= htmlspecialchars($file['nome_original'] . ' ' . $file['extensao'] . ' ' . ($file['disciplina_nome'] ?? '') . ' ' . ($file['pasta_nome'] ?? ''), ENT_QUOTES, 'UTF-8') ?>">
                                 <div class="file-card-top">
@@ -423,7 +425,7 @@ require dirname(__DIR__) . '/layouts/header.php';
                                     <div class="file-card-cover <?= $typeClass ?>">
                                         <span class="file-cover-type"><?= htmlspecialchars(strtoupper((string) $file['extensao']), ENT_QUOTES, 'UTF-8') ?></span>
                                         <img src="<?= htmlspecialchars($coverUrlFor($file['id']), ENT_QUOTES, 'UTF-8') ?>"
-                                             alt="Prévia de <?= htmlspecialchars($file['nome_original'], ENT_QUOTES, 'UTF-8') ?>"
+                                             alt="Prévia de <?= htmlspecialchars($nomeExibicao, ENT_QUOTES, 'UTF-8') ?>"
                                              loading="lazy" decoding="async"
                                              <?php if ($fileIsPdf): ?>
                                                  data-pdf-cover
@@ -439,8 +441,8 @@ require dirname(__DIR__) . '/layouts/header.php';
                                     </div>
                                 <?php endif; ?>
 
-                                <strong class="file-card-title" title="<?= htmlspecialchars($file['nome_original'], ENT_QUOTES, 'UTF-8') ?>">
-                                    <?= htmlspecialchars($file['nome_original'], ENT_QUOTES, 'UTF-8') ?>
+                                <strong class="file-card-title" title="<?= htmlspecialchars($nomeExibicao, ENT_QUOTES, 'UTF-8') ?>">
+                                    <?= htmlspecialchars($nomeExibicao, ENT_QUOTES, 'UTF-8') ?>
                                 </strong>
 
                                 <div class="file-card-meta">
@@ -512,22 +514,22 @@ require dirname(__DIR__) . '/layouts/header.php';
                                                     </a>
                                                 </li>
                                                 <li>
-                                                    <button class="dropdown-item" type="button" data-action="rename-file" data-url="<?= Url::to('/arquivos/' . rawurlencode($file['id']) . '/renomear') ?>" data-nome="<?= htmlspecialchars($file['nome_original'], ENT_QUOTES, 'UTF-8') ?>">
+                                                    <button class="dropdown-item" type="button" data-action="rename-file" data-url="<?= Url::to('/arquivos/' . rawurlencode($file['id']) . '/renomear') ?>" data-nome="<?= htmlspecialchars($nomeExibicao, ENT_QUOTES, 'UTF-8') ?>">
                                                         <i class="bi bi-pencil-square"></i>Renomear
                                                     </button>
                                                 </li>
                                                 <li>
-                                                    <button class="dropdown-item" type="button" data-action="move-file" data-url="<?= Url::to('/arquivos/' . rawurlencode($file['id']) . '/mover') ?>" data-nome="<?= htmlspecialchars($file['nome_original'], ENT_QUOTES, 'UTF-8') ?>" data-pasta-id="<?= htmlspecialchars((string) ($file['pasta_id'] ?? ''), ENT_QUOTES, 'UTF-8') ?>" data-disciplina-id="<?= htmlspecialchars((string) ($file['disciplina_id'] ?? ''), ENT_QUOTES, 'UTF-8') ?>">
+                                                    <button class="dropdown-item" type="button" data-action="move-file" data-url="<?= Url::to('/arquivos/' . rawurlencode($file['id']) . '/mover') ?>" data-nome="<?= htmlspecialchars($nomeExibicao, ENT_QUOTES, 'UTF-8') ?>" data-pasta-id="<?= htmlspecialchars((string) ($file['pasta_id'] ?? ''), ENT_QUOTES, 'UTF-8') ?>" data-disciplina-id="<?= htmlspecialchars((string) ($file['disciplina_id'] ?? ''), ENT_QUOTES, 'UTF-8') ?>">
                                                         <i class="bi bi-folder-symlink"></i>Mover para pasta
                                                     </button>
                                                 </li>
                                                 <li>
-                                                    <button class="dropdown-item" type="button" data-action="edit-tags" data-url="<?= Url::to('/arquivos/' . rawurlencode($file['id']) . '/tags') ?>" data-nome="<?= htmlspecialchars($file['nome_original'], ENT_QUOTES, 'UTF-8') ?>" data-tags="<?= htmlspecialchars($tagIdsString, ENT_QUOTES, 'UTF-8') ?>">
+                                                    <button class="dropdown-item" type="button" data-action="edit-tags" data-url="<?= Url::to('/arquivos/' . rawurlencode($file['id']) . '/tags') ?>" data-nome="<?= htmlspecialchars($nomeExibicao, ENT_QUOTES, 'UTF-8') ?>" data-tags="<?= htmlspecialchars($tagIdsString, ENT_QUOTES, 'UTF-8') ?>">
                                                         <i class="bi bi-tags"></i>Gerenciar tags
                                                     </button>
                                                 </li>
                                                 <li>
-                                                    <button class="dropdown-item" type="button" data-action="view-history" data-url="<?= Url::to('/arquivos/' . rawurlencode($file['id']) . '/historico') ?>" data-nome="<?= htmlspecialchars($file['nome_original'], ENT_QUOTES, 'UTF-8') ?>">
+                                                    <button class="dropdown-item" type="button" data-action="view-history" data-url="<?= Url::to('/arquivos/' . rawurlencode($file['id']) . '/historico') ?>" data-nome="<?= htmlspecialchars($nomeExibicao, ENT_QUOTES, 'UTF-8') ?>">
                                                         <i class="bi bi-clock-history"></i>Ver histórico
                                                     </button>
                                                 </li>
@@ -572,6 +574,7 @@ require dirname(__DIR__) . '/layouts/header.php';
                                         $iconName = $getFileIcon($file['extensao']);
                                         $isFav = !empty($file['favorito_real']) || !empty($file['favorito']);
                                         $tagIdsString = implode(',', array_column($file['tags'] ?? [], 'id'));
+                                        $nomeExibicao = FileDisplay::name($file['nome_original'] ?? null, $file['extensao'] ?? null);
                                         ?>
                                         <tr data-search-text="<?= htmlspecialchars($file['nome_original'] . ' ' . $file['extensao'] . ' ' . ($file['disciplina_nome'] ?? '') . ' ' . ($file['pasta_nome'] ?? ''), ENT_QUOTES, 'UTF-8') ?>">
                                             <td>
@@ -596,8 +599,8 @@ require dirname(__DIR__) . '/layouts/header.php';
                                                         </span>
                                                     <?php endif; ?>
                                                     <div class="file-name-text">
-                                                        <strong title="<?= htmlspecialchars($file['nome_original'], ENT_QUOTES, 'UTF-8') ?>">
-                                                            <?= htmlspecialchars($file['nome_original'], ENT_QUOTES, 'UTF-8') ?>
+                                                        <strong title="<?= htmlspecialchars($nomeExibicao, ENT_QUOTES, 'UTF-8') ?>">
+                                                            <?= htmlspecialchars($nomeExibicao, ENT_QUOTES, 'UTF-8') ?>
                                                         </strong>
                                                         <div class="file-col-tags">
                                                             <?php foreach (($file['tags'] ?? []) as $t): ?>
@@ -691,22 +694,22 @@ require dirname(__DIR__) . '/layouts/header.php';
                                                                     </a>
                                                                 </li>
                                                                 <li>
-                                                                    <button class="dropdown-item" type="button" data-action="rename-file" data-url="<?= Url::to('/arquivos/' . rawurlencode($file['id']) . '/renomear') ?>" data-nome="<?= htmlspecialchars($file['nome_original'], ENT_QUOTES, 'UTF-8') ?>">
+                                                                    <button class="dropdown-item" type="button" data-action="rename-file" data-url="<?= Url::to('/arquivos/' . rawurlencode($file['id']) . '/renomear') ?>" data-nome="<?= htmlspecialchars($nomeExibicao, ENT_QUOTES, 'UTF-8') ?>">
                                                                         <i class="bi bi-pencil-square"></i>Renomear
                                                                     </button>
                                                                 </li>
                                                                 <li>
-                                                                    <button class="dropdown-item" type="button" data-action="move-file" data-url="<?= Url::to('/arquivos/' . rawurlencode($file['id']) . '/mover') ?>" data-nome="<?= htmlspecialchars($file['nome_original'], ENT_QUOTES, 'UTF-8') ?>" data-pasta-id="<?= htmlspecialchars((string) ($file['pasta_id'] ?? ''), ENT_QUOTES, 'UTF-8') ?>" data-disciplina-id="<?= htmlspecialchars((string) ($file['disciplina_id'] ?? ''), ENT_QUOTES, 'UTF-8') ?>">
+                                                                    <button class="dropdown-item" type="button" data-action="move-file" data-url="<?= Url::to('/arquivos/' . rawurlencode($file['id']) . '/mover') ?>" data-nome="<?= htmlspecialchars($nomeExibicao, ENT_QUOTES, 'UTF-8') ?>" data-pasta-id="<?= htmlspecialchars((string) ($file['pasta_id'] ?? ''), ENT_QUOTES, 'UTF-8') ?>" data-disciplina-id="<?= htmlspecialchars((string) ($file['disciplina_id'] ?? ''), ENT_QUOTES, 'UTF-8') ?>">
                                                                         <i class="bi bi-folder-symlink"></i>Mover
                                                                     </button>
                                                                 </li>
                                                                 <li>
-                                                                    <button class="dropdown-item" type="button" data-action="edit-tags" data-url="<?= Url::to('/arquivos/' . rawurlencode($file['id']) . '/tags') ?>" data-nome="<?= htmlspecialchars($file['nome_original'], ENT_QUOTES, 'UTF-8') ?>" data-tags="<?= htmlspecialchars($tagIdsString, ENT_QUOTES, 'UTF-8') ?>">
+                                                                    <button class="dropdown-item" type="button" data-action="edit-tags" data-url="<?= Url::to('/arquivos/' . rawurlencode($file['id']) . '/tags') ?>" data-nome="<?= htmlspecialchars($nomeExibicao, ENT_QUOTES, 'UTF-8') ?>" data-tags="<?= htmlspecialchars($tagIdsString, ENT_QUOTES, 'UTF-8') ?>">
                                                                         <i class="bi bi-tags"></i>Tags
                                                                     </button>
                                                                 </li>
                                                                 <li>
-                                                                    <button class="dropdown-item" type="button" data-action="view-history" data-url="<?= Url::to('/arquivos/' . rawurlencode($file['id']) . '/historico') ?>" data-nome="<?= htmlspecialchars($file['nome_original'], ENT_QUOTES, 'UTF-8') ?>">
+                                                                    <button class="dropdown-item" type="button" data-action="view-history" data-url="<?= Url::to('/arquivos/' . rawurlencode($file['id']) . '/historico') ?>" data-nome="<?= htmlspecialchars($nomeExibicao, ENT_QUOTES, 'UTF-8') ?>">
                                                                         <i class="bi bi-clock-history"></i>Histórico
                                                                     </button>
                                                                 </li>
@@ -986,7 +989,7 @@ require dirname(__DIR__) . '/layouts/header.php';
                 <div class="mb-3">
                     <label class="form-label fw-semibold" for="rename-file-nome">Novo nome do arquivo</label>
                     <input class="form-control" id="rename-file-nome" name="nome" maxlength="255" required>
-                    <div class="form-text">A alteração será registrada no histórico de versões do arquivo.</div>
+                    <div class="form-text">Digite o nome sem a extensão: ela será mantida automaticamente. A alteração será registrada no histórico.</div>
                 </div>
             </div>
 

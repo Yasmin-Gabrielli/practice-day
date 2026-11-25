@@ -1,4 +1,5 @@
 <?php
+use App\Helpers\FileDisplay;
 use App\Helpers\Url;
 
 $formatBytes = static function (int $bytes): string {
@@ -12,7 +13,7 @@ $formatBytes = static function (int $bytes): string {
     return number_format($bytes / 1048576, 2, ',', '.') . ' MB';
 };
 
-$fileName = (string) ($file['nome_original'] ?? 'Livro');
+$fileName = FileDisplay::name($file['nome_original'] ?? null, $file['extensao'] ?? null);
 $disciplina = (string) ($file['disciplina_nome'] ?? 'Sem disciplina');
 $libId = (string) ($library['id'] ?? '');
 $progresso = is_array($library['progresso'] ?? null) ? $library['progresso'] : [];

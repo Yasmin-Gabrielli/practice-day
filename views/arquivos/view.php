@@ -1,4 +1,5 @@
 <?php
+use App\Helpers\FileDisplay;
 use App\Helpers\Url;
 
 $formatBytes = static function (int $bytes): string {
@@ -14,7 +15,7 @@ $formatBytes = static function (int $bytes): string {
 
 $extLabel = strtoupper((string) ($file['extensao'] ?? ''));
 $disciplina = (string) ($file['disciplina_nome'] ?? 'Sem disciplina');
-$fileName = (string) ($file['nome_original'] ?? 'Documento');
+$fileName = FileDisplay::name($file['nome_original'] ?? null, $file['extensao'] ?? null);
 $progresso = is_array($library['progresso'] ?? null) ? $library['progresso'] : null;
 $initialPage = max(1, (int) ($progresso['pagina_atual'] ?? 1));
 $totalPages = max(0, (int) ($progresso['total_paginas'] ?? 0));

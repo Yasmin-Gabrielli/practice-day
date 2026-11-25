@@ -1,4 +1,5 @@
 <?php
+use App\Helpers\FileDisplay;
 use App\Helpers\Lang;
 use App\Helpers\Url;
 use App\Helpers\UserTheme;
@@ -85,7 +86,7 @@ require dirname(__DIR__) . '/layouts/header.php';
                 <?php if ($visible('arquivos')): ?>
                     <section class="dashboard-card dashboard-widget" <?= $widgetAttributes('arquivos') ?>><div class="card-heading"><div><h2><?= htmlspecialchars(Lang::get('widget.files_title'), ENT_QUOTES, 'UTF-8') ?></h2><p><?= htmlspecialchars(Lang::get('widget.files_sub'), ENT_QUOTES, 'UTF-8') ?></p></div><i class="bi bi-folder2-open card-heading-icon"></i></div>
                         <?php if ($dashboard['files'] === []): ?><div class="empty-state"><i class="bi bi-folder2-open"></i><p><?= htmlspecialchars(Lang::get('widget.files_empty'), ENT_QUOTES, 'UTF-8') ?></p></div>
-                        <?php else: ?><div class="compact-list"><?php foreach ($dashboard['files'] as $file): ?><a class="compact-row text-decoration-none text-reset" href="<?= Url::to('/arquivos/visualizar/' . rawurlencode((string) ($file['id'] ?? ''))) ?>"><span class="file-icon"><i class="bi bi-file-earmark"></i></span><div class="text-truncate"><strong class="text-truncate d-block"><?= htmlspecialchars((string) ($file['nome_original'] ?: $file['nome_arquivo']), ENT_QUOTES, 'UTF-8') ?></strong><small><?= $formatDate($file['criado_em'], true) ?></small></div></a><?php endforeach; ?></div><?php endif; ?>
+                        <?php else: ?><div class="compact-list"><?php foreach ($dashboard['files'] as $file): ?><a class="compact-row text-decoration-none text-reset" href="<?= Url::to('/arquivos/visualizar/' . rawurlencode((string) ($file['id'] ?? ''))) ?>"><span class="file-icon"><i class="bi bi-file-earmark"></i></span><div class="text-truncate"><strong class="text-truncate d-block"><?= htmlspecialchars(FileDisplay::name(($file['nome_original'] ?? '') ?: ($file['nome_arquivo'] ?? null), $file['extensao'] ?? null), ENT_QUOTES, 'UTF-8') ?></strong><small><?= $formatDate($file['criado_em'], true) ?></small></div></a><?php endforeach; ?></div><?php endif; ?>
                     </section>
                 <?php endif; ?>
 
